@@ -1,0 +1,38 @@
+package hidden.the.projectx.core
+
+import android.content.Context
+import android.content.Intent
+
+/**
+ * Mendorong config spoof ke proses target via broadcast.
+ * v2.6: 3 parameter jitter PER TARGET — tiap target menerima nilai miliknya.
+ */
+class ConfigPusher(private val context: Context) {
+
+    fun pushAll() = Targets.all.forEach { push(it) }
+
+    fun push(target: SpoofTarget) {
+        val sp = context.getSharedPreferences(Keys.PREFS_NAME, Context.MODE_PRIVATE)
+        val active = sp.getBoolean(Keys.spoofActive(target.id), false)
+
+        target.packageNames.forEach { pkg ->
+            try {
+                context.sendBroadcast(
+                    Intent(ConfigPusher.ACTION).setPackage(pkg)
+                        .putExtra(ConfigPusher.EXTRA_TARGET_ID, target.id)
+                        .putExtra("active", active)
+                        .putExtra("lat", sp.getString(Keys.spoofLat(target.id), null))
+                        .putExtra("lng", sp.getString(Keys.spoofLng(target.id), null))
+                        .putExtra("jit_step", sp.getString(Keys.jitStepKey(target.id), null))
+                        .putExtra("jit_win", sp.getString(Keys.jitWinKey(target.id), null))
+                        .putExtra("jit_radius", sp.getString(Keys.jitRadiusKey(target.id), null))
+                )
+            } catch (_: Throwable) { /* target tak terlihat — biarkan fallback */ }
+        }
+    }
+
+    companion object {
+        const val ACTION = "hidden.the.projectx.SPOOF_CONFIG"
+        const val EXTRA_TARGET_ID = "target_id"
+    }
+}
