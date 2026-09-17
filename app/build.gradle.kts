@@ -11,8 +11,8 @@ android {
         applicationId = "hidden.the.projectx"
         minSdk = 30
         targetSdk = 36
-        versionCode = 36
-        versionName = "2.8.0"
+        versionCode = 1
+        versionName = "1.0.0"
         manifestPlaceholders["MAPS_API_KEY"] = System.getenv("MAPS_API_KEY") ?: ""
     }
 
