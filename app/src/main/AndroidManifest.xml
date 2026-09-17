@@ -17,7 +17,7 @@
     <application
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/Theme.PROJECT-X"
+        android:theme="@style/Theme.PROJECTX"
         android:supportsRtl="true">
 
         <meta-data
