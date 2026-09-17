@@ -192,7 +192,7 @@ class FavoritesController(
             }
         }
 
-        dialog = AlertDialog.Builder(activity, R.style.Theme_PROJECT-X_Dialog)
+        dialog = AlertDialog.Builder(activity, R.style.Theme_PROJECTX_Dialog)
             .setView(v)
             .create()
         dialog?.window?.setBackgroundDrawableResource(android.R.color.transparent)
@@ -204,7 +204,7 @@ class FavoritesController(
     // ===== KONFIRMASI PLAY dari favorit =====
     private fun showPlayConfirm(cat: String, i: Int, f: FavoritesStore.Fav) {
         val label = if (cat == Targets.GRAB.id) "GRAB" else "GOJEK"
-        val d = AlertDialog.Builder(activity, R.style.Theme_PROJECT-X_Dialog)
+        val d = AlertDialog.Builder(activity, R.style.Theme_PROJECTX_Dialog)
             .setTitle("Mulai Spoofing?")
             .setMessage("Mulai $label di lokasi \"${f.name}\"?")
             .setPositiveButton("▶ PLAY") { _, _ ->
@@ -228,7 +228,7 @@ class FavoritesController(
         latEt.setText(f.lat.toString())
         lngEt.setText(f.lng.toString())
 
-        val d = AlertDialog.Builder(activity, R.style.Theme_PROJECT-X_Dialog)
+        val d = AlertDialog.Builder(activity, R.style.Theme_PROJECTX_Dialog)
             .setView(v)
             .create()
         d.window?.setBackgroundDrawableResource(R.drawable.bg_dialog_card)
@@ -264,7 +264,7 @@ class FavoritesController(
     // ===== HAPUS: konfirmasi =====
     private fun askDelete(cat: String, i: Int) {
         val f = store.all(cat).getOrNull(i) ?: return
-        val d = AlertDialog.Builder(activity, R.style.Theme_PROJECT-X_Dialog)
+        val d = AlertDialog.Builder(activity, R.style.Theme_PROJECTX_Dialog)
             .setTitle("Hapus lokasi?")
             .setMessage("\"${f.name}\" akan dihapus permanen dari kategori ini.")
             .setPositiveButton("Hapus") { _, _ ->
