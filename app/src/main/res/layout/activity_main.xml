@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <fragment
+        android:id="@+id/map"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <ImageView
+        android:id="@+id/pin_center"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="center"
+        android:translationY="-20dp"
+        android:contentDescription="Pin lokasi"
+        android:elevation="6dp"
+        android:src="@drawable/ic_pin" />
+
+    <!-- Kolom kanan: 4 tombol (fokus, tema, zoom in, zoom out) -->
+    <LinearLayout
+        android:id="@+id/sidecol"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="12dp"
+        android:layout_marginBottom="186dp"
+        android:orientation="vertical">
+
+        <ImageButton
+            android:id="@+id/btn_my_location"
+            android:layout_width="46dp"
+            android:layout_height="46dp"
+            android:background="@drawable/bg_button"
+            android:elevation="6dp"
+            android:padding="11dp"
+            android:contentDescription="Fokus ke lokasi saya"
+            android:src="@drawable/ic_gps" />
+
+        <Space android:layout_width="1dp" android:layout_height="10dp" />
+
+        <ImageButton
+            android:id="@+id/btn_theme"
+            android:layout_width="46dp"
+            android:layout_height="46dp"
+            android:background="@drawable/bg_button"
+            android:elevation="6dp"
+            android:padding="11dp"
+            android:contentDescription="Ganti tema peta"
+            android:src="@drawable/ic_moon" />
+
+        <Space android:layout_width="1dp" android:layout_height="10dp" />
+
+        <Button
+            android:id="@+id/btn_zoom_in"
+            android:layout_width="46dp"
+            android:layout_height="46dp"
+            android:background="@drawable/bg_button"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:elevation="6dp"
+            android:textSize="22sp"
+            android:textColor="#212121"
+            android:fontFamily="monospace"
+            android:text="+" />
+
+        <Space android:layout_width="1dp" android:layout_height="10dp" />
+
+        <Button
+            android:id="@+id/btn_zoom_out"
+            android:layout_width="46dp"
+            android:layout_height="46dp"
+            android:background="@drawable/bg_button"
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:elevation="6dp"
+            android:textSize="22sp"
+            android:textColor="#212121"
+            android:fontFamily="monospace"
+            android:text="−" />
+    </LinearLayout>
+
+    <!-- ===== KONTAINER FULL-WIDTH: GRAB | GOJEK | FAVORIT | JITTER ===== -->
+    <LinearLayout
+        android:id="@+id/panelbottom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:paddingTop="10dp"
+        android:paddingBottom="12dp"
+        android:background="@drawable/bg_dialog_card"
+        android:elevation="10dp">
+
+        <!-- GRAB -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <View
+                    android:id="@+id/dot_grab"
+                    android:layout_width="5dp"
+                    android:layout_height="5dp"
+                    android:layout_marginEnd="5dp"
+                    android:background="@drawable/bg_dot_red" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/target_grab"
+                    android:textColor="@color/label_text"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.1" />
+            </LinearLayout>
+
+            <ImageButton
+                android:id="@+id/btn_grab"
+                android:layout_width="55dp"
+                android:layout_height="55dp"
+                android:layout_marginTop="6dp"
+                android:padding="15dp"
+                android:background="@drawable/bg_play_red_touch"
+                android:contentDescription="Mulai GRAB"
+                android:src="@drawable/ic_play" />
+        </LinearLayout>
+
+        <!-- GOJEK -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <View
+                    android:id="@+id/dot_gojek"
+                    android:layout_width="5dp"
+                    android:layout_height="5dp"
+                    android:layout_marginEnd="5dp"
+                    android:background="@drawable/bg_dot_red" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/target_gojek"
+                    android:textColor="@color/label_text"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.1" />
+            </LinearLayout>
+
+            <ImageButton
+                android:id="@+id/btn_gojek"
+                android:layout_width="55dp"
+                android:layout_height="55dp"
+                android:layout_marginTop="6dp"
+                android:padding="15dp"
+                android:background="@drawable/bg_play_red_touch"
+                android:contentDescription="Mulai GOJEK"
+                android:src="@drawable/ic_play" />
+        </LinearLayout>
+
+        <!-- FAVORIT -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/favorite_label"
+                android:textColor="@color/label_text"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.1" />
+
+            <ImageButton
+                android:id="@+id/btn_fav"
+                android:layout_width="55dp"
+                android:layout_height="55dp"
+                android:layout_marginTop="6dp"
+                android:padding="15dp"
+                android:background="@drawable/bg_fav_touch"
+                android:contentDescription="Lokasi tersimpan"
+                android:src="@drawable/ic_star_white" />
+        </LinearLayout>
+
+        <!-- JITTER -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/jitter_label"
+                android:textColor="@color/label_text"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.1" />
+
+            <ImageButton
+                android:id="@+id/btn_jitter"
+                android:layout_width="55dp"
+                android:layout_height="55dp"
+                android:layout_marginTop="6dp"
+                android:padding="15dp"
+                android:background="@drawable/bg_fav_touch"
+                android:contentDescription="Pengaturan pergerakan titik"
+                android:src="@drawable/ic_tune" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</FrameLayout>
