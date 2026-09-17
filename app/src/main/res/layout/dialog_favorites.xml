@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="14dp"
+    android:background="@drawable/bg_dialog_card">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="4dp"
+        android:paddingBottom="8dp"
+        android:textColor="#99FFFFFF"
+        android:textSize="11sp"
+        android:text="Favorit tersimpan per-kategori — list GRAB dan list GOJEK terpisah." />
+
+    <!-- PEMILIH KATEGORI -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/cat_grab"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:padding="10dp"
+            android:background="@drawable/bg_mode_on"
+            android:textColor="#C8F7D8"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:text="GRAB" />
+
+        <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+        <TextView
+            android:id="@+id/cat_gojek"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:padding="10dp"
+            android:background="@drawable/bg_mode_off"
+            android:textColor="#99FFFFFF"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:text="GOJEK" />
+    </LinearLayout>
+
+    <!-- MODE INPUT: Dari Pin / Manual -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="8dp">
+
+        <TextView
+            android:id="@+id/mode_pin"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:padding="10dp"
+            android:background="@drawable/bg_mode_on"
+            android:textColor="#C8F7D8"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:text="📍 Dari Pin" />
+
+        <Space android:layout_width="8dp" android:layout_height="1dp" />
+
+        <TextView
+            android:id="@+id/mode_manual"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:padding="10dp"
+            android:background="@drawable/bg_mode_off"
+            android:textColor="#99FFFFFF"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:text="⌨ Manual" />
+    </LinearLayout>
+
+    <EditText
+        android:id="@+id/fav_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/bg_coord_chip"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="11dp"
+        android:hint="Nama lokasi…"
+        android:maxLength="40"
+        android:inputType="text"
+        android:textColor="@color/label_text"
+        android:textColorHint="#66FFFFFF"
+        android:textSize="13sp" />
+
+    <!-- Kolom VERTIKAL: mode Manual (GONE saat mode Pin) -->
+    <LinearLayout
+        android:id="@+id/latlng_row"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="8dp"
+        android:visibility="gone">
+
+        <EditText
+            android:id="@+id/in_lat"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_coord_chip"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="11dp"
+            android:hint="Latitude (contoh: -6.2166)"
+            android:inputType="numberDecimal|numberSigned"
+            android:fontFamily="monospace"
+            android:textColor="@color/label_text"
+            android:textColorHint="#66FFFFFF"
+            android:textSize="13sp" />
+
+        <EditText
+            android:id="@+id/in_lng"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_coord_chip"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="11dp"
+            android:hint="Longitude (contoh: 106.8491)"
+            android:inputType="numberDecimal|numberSigned"
+            android:fontFamily="monospace"
+            android:textColor="@color/label_text"
+            android:textColorHint="#66FFFFFF"
+            android:textSize="13sp" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/fav_err"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="8dp"
+        android:layout_marginTop="4dp"
+        android:textColor="#FF8A80"
+        android:textSize="10sp"
+        android:visibility="gone" />
+
+    <Button
+        android:id="@+id/fav_add"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginHorizontal="8dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_play_green_touch"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold"
+        android:textSize="13sp"
+        android:text="SIMPAN" />
+
+    <TextView
+        android:id="@+id/fav_empty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="24dp"
+        android:gravity="center"
+        android:textColor="#66FFFFFF"
+        android:textSize="13sp"
+        android:text="Kategori ini belum ada lokasi." />
+
+    <ScrollView
+        android:id="@+id/fav_scroll"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxHeight="320dp">
+
+        <LinearLayout
+            android:id="@+id/fav_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+    </ScrollView>
+</LinearLayout>
