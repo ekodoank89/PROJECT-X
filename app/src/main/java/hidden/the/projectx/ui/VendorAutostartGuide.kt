@@ -17,11 +17,11 @@ object VendorAutostartGuide {
         VENDORS.any { Build.MANUFACTURER.lowercase().contains(it) }
 
     fun show(activity: Activity) {
-        AlertDialog.Builder(activity, R.style.Theme_PROJECT-X_Dialog)
+        AlertDialog.Builder(activity, R.style.Theme_PROJECTX_Dialog)
             .setTitle("Aktifkan 'Auto-start' / 'Always on'")
             .setMessage(
                 "Pabrikan (" + Build.MANUFACTURER + ") kadang mematikan app di latar belakang.\n\n" +
-                "Di layar berikutnya, aktifkan 'Auto-start' untuk PROJECT-X agar tetap berjalan penuh."
+                "Di layar berikutnya, aktifkan 'Auto-start' untuk PROJECTX agar tetap berjalan penuh."
             )
             .setPositiveButton("Buka Pengaturan") { _, _ ->
                 val i = buildIntent(activity)
