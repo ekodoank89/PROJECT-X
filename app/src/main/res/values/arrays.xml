@@ -1,0 +1,7 @@
+<resources>
+    <!-- Recommended scope: khusus DRIVER APPS (v2.7.1) -->
+    <string-array name="xposed_scope">
+        <item>com.grabtaxi.driver2</item>
+        <item>com.gojek.partner</item>
+    </string-array>
+</resources>
