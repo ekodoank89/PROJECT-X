@@ -144,7 +144,7 @@ class JitterController(
             dialog?.dismiss()
         }
 
-        dialog = AlertDialog.Builder(activity, R.style.Theme_PROJECT-X_Dialog)
+        dialog = AlertDialog.Builder(activity, R.style.Theme_PROJECTX_Dialog)
             .setView(v)
             .create()
         dialog?.window?.setBackgroundDrawableResource(R.drawable.bg_dialog_card)
