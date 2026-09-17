@@ -40,7 +40,7 @@ class NotifPermissionFlow(
             launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
             // onDone dipanggil dari launcher callback (notifPermLauncher di MainActivity)
         } else {
-            val d = AlertDialog.Builder(activity, R.style.Theme_PROJECT-X_Dialog)
+            val d = AlertDialog.Builder(activity, R.style.Theme_PROJECTX_Dialog)
                 .setTitle("Izin notifikasi diblokir")
                 .setMessage(
                     "Tombol STOP di status bar tidak akan muncul tanpa izin notifikasi.\n\n" +
@@ -86,11 +86,11 @@ class NotifPermissionFlow(
     }
 
     private fun showBlockedDialog(onContinue: () -> Unit) {
-        val d = AlertDialog.Builder(activity, R.style.Theme_PROJECT-X_Dialog)
+        val d = AlertDialog.Builder(activity, R.style.Theme_PROJECTX_Dialog)
             .setTitle("Izin notifikasi diblokir")
             .setMessage(
                 "Tombol STOP di status bar tidak akan muncul tanpa izin notifikasi.\n\n" +
-                "Anda tetap bisa memakai PROJECT-X, tapi tanpa kendali jarak jauh."
+                "Anda tetap bisa memakai PROJECTX, tapi tanpa kendali jarak jauh."
             )
             .setPositiveButton("Buka Pengaturan") { _, _ ->
                 activity.startActivity(
