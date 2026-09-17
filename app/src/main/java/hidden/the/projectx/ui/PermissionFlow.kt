@@ -72,7 +72,7 @@ class PermissionFlow(
     }
 
     private fun showBlockedDialog() {
-        val d = AlertDialog.Builder(activity, R.style.Theme_PROJECT-X_Dialog)
+        val d = AlertDialog.Builder(activity, R.style.Theme_PROJECTX_Dialog)
             .setTitle("Izin lokasi diblokir")
             .setMessage("Izin lokasi telah ditolak berulang kali. Untuk fitur titik biru, nyalakan izin Lokasi di Pengaturan aplikasi.")
             .setPositiveButton("Buka Pengaturan") { _, _ ->
@@ -108,10 +108,10 @@ class PermissionFlow(
         if (blocked) {
             showBackgroundBlockedDialog(onDone)
         } else {
-            val d = AlertDialog.Builder(activity, R.style.Theme_PROJECT-X_Dialog)
+            val d = AlertDialog.Builder(activity, R.style.Theme_PROJECTX_Dialog)
                 .setTitle("Izinkan lokasi di latar belakang?")
                 .setMessage(
-                    "PROJECT-X perlu lokasi 'Selalu izinkan' agar titik biru dan status tetap akurat " +
+                    "PROJECTX perlu lokasi 'Selalu izinkan' agar titik biru dan status tetap akurat " +
                     "walaupun aplikasi sedang tidak dibuka.\n\n" +
                     "Di layar berikutnya pilih 'Selalu izinkan' (Allow all the time)."
                 )
@@ -136,7 +136,7 @@ class PermissionFlow(
     var pendingBackgroundDone: (() -> Unit)? = null
 
     private fun showBackgroundBlockedDialog(onDone: () -> Unit) {
-        val d = AlertDialog.Builder(activity, R.style.Theme_PROJECT-X_Dialog)
+        val d = AlertDialog.Builder(activity, R.style.Theme_PROJECTX_Dialog)
             .setTitle("Lokasi latar belakang diblokir")
             .setMessage("Izin 'Selalu izinkan' ditolak sebelumnya. Untuk mengaktifkannya: Pengaturan → Izin → Lokasi → 'Selalu izinkan'.")
             .setPositiveButton("Buka Pengaturan") { _, _ ->
