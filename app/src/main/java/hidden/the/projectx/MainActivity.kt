@@ -75,9 +75,12 @@ class MainActivity : AppCompatActivity() {
                 playFromFavorite(catId, lat, lng, name)
             },
             onPick = { catId, lat, lng, name ->
+                // MENGHAPUS DIALOG:
+                // Langsung jalankan playFromFavorite (langsung play & close menu favorit)
                 playFromFavorite(catId, lat, lng, name)
             }
         )
+
 
         permissionFlow = PermissionFlow(this, prefs) {
             map.ensureBlueDot()
