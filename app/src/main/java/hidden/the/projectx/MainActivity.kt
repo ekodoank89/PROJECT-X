@@ -1,3 +1,5 @@
+// app/src/main/java/hidden/the/projectx/MainActivity.kt
+
 package hidden.the.projectx
 
 import android.Manifest
@@ -31,7 +33,7 @@ import hidden.the.projectx.ui.NotifPermissionFlow
 import hidden.the.projectx.ui.PermissionFlow
 import hidden.the.projectx.ui.PlayPanelController
 import com.google.android.gms.maps.SupportMapFragment
-import hidden.the.projectx.service.GojekNotificationListener
+import hidden.the.projectx.service.GojekNotifListener // PERBAIKAN 1: Nama class disesuaikan
 
 class MainActivity : AppCompatActivity() {
 
@@ -45,7 +47,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var notifPerm: NotifPermissionFlow
     private lateinit var jitter: JitterController
 
-    // Launcher izin notifikasi — WAJIB field (terdaftar sebelum onStart).
     private val notifPermLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) {
@@ -53,7 +54,6 @@ class MainActivity : AppCompatActivity() {
         notifPerm.notifDone?.let { it(); notifPerm.notifDone = null }
     }
 
-    // ===== RANTAI IZIN + DOUBLE CROSS-CHECK (v2.4.2) =====
     private var lastStage = ""
     private val chainHandler = Handler(Looper.getMainLooper())
     private var batteryOnceThisSession = false
@@ -86,8 +86,6 @@ class MainActivity : AppCompatActivity() {
 
         permissionFlow.onSettled = { nextChainStep() }
 
-        // v2.6.4: PlayPanel mem-push sendiri saat toggle
-        // (lock → push → buka app target + push ulang terjadwal)
         playPanel = PlayPanelController(
             this, prefs,
             pusher = pusher,
@@ -104,7 +102,6 @@ class MainActivity : AppCompatActivity() {
 
         favorites.bind(R.id.btn_fav)
 
-        // ==== JITTER ====
         jitter = JitterController(this, prefs, pusher)
         jitter.bind(R.id.btn_jitter)
 
@@ -130,10 +127,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         checkNotificationListenerPermission()
-        
     }
 
-    /** Satu pintu update notifikasi indikator (kumpulkan target aktif → update). */
     private fun refreshNotif() {
         val activeList = Targets.all.mapNotNull { t ->
             if (prefs.isSpoofActive(t.id)) {
@@ -143,18 +138,27 @@ class MainActivity : AppCompatActivity() {
         notifs.update(activeList)
     }
 
+    // PERBAIKAN 2: onResume() CUKUP 1 SAJA DI SINI
     override fun onResume() {
         super.onResume()
         if (permissionFlow.hasPermission()) map.ensureBlueDot()
 
-        // Kembali dari Settings → selesaikan tahap tertunda → rantai evaluasi ulang
         permissionFlow.resumePendingBackground { nextChainStep() }
 
-        // Minta Akses Listen Notifikasi jika belum diaktifkan
         checkNotificationListenerPermission()
-        
-        // Notifikasi indikator sinkron dengan state tersimpan
+
         refreshNotif()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        val filter = IntentFilter("ACTION_GOJEK_TRIP_RECEIVED")
+        registerReceiver(gojekTripReceiver, filter)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        unregisterReceiver(gojekTripReceiver)
     }
 
     override fun onDestroy() {
@@ -162,13 +166,6 @@ class MainActivity : AppCompatActivity() {
         if (::map.isInitialized) map.stop()
     }
 
-    /**
-     * Mesin status rantai v2.4.2 + DOUBLE CROSS-CHECK:
-     * 1) Lokasi dasar   — ulang hingga granted
-     * 2) Selalu izinkan — ulang hingga granted (dicek ulang dari onResume)
-     * 3) Notifikasi     — ulang hingga granted
-     * 4) Baterai        — dialog sistem SEKALI per sesi (tidak ditagih ulang)
-     */
     private fun nextChainStep() {
         when {
             !permissionFlow.hasPermission() ->
@@ -193,10 +190,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Double cross-check: tahap yang SAMA diminta ulang = belum granted
-     * → toast penjelasan + jeda 0,7 dtk sebelum dialog muncul lagi.
-     */
     private fun beginStage(name: String, request: () -> Unit) {
         if (name == lastStage) {
             Toast.makeText(
@@ -211,7 +204,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /** Play langsung dari favorit — lock di koordinat favorit + push + buka app target. */
     private fun playFromFavorite(catId: String, lat: Double, lng: Double, name: String) {
         val target = Targets.byId(catId)
         prefs.setSpoofPoint(catId, lat, lng)
@@ -244,64 +236,29 @@ class MainActivity : AppCompatActivity() {
             .setImageResource(if (prefs.isDark) R.drawable.ic_sun else R.drawable.ic_moon)
     }
 
-override fun onResume() {
-    super.onResume()
-    if (permissionFlow.hasPermission()) map.ensureBlueDot()
+    private fun checkNotificationListenerPermission() {
+        val packageName = packageName
+        val flat = Settings.Secure.getString(contentResolver, "enabled_notification_listeners")
+        val isEnabled = flat != null && flat.contains(packageName)
 
-    // Kembali dari Settings → selesaikan tahap tertunda
-    permissionFlow.resumePendingBackground { nextChainStep() }
-
-    // Minta Akses Listen Notifikasi jika belum diaktifkan
-    checkNotificationListenerPermission()
-
-    // Notifikasi indikator sinkron dengan state tersimpan
-    refreshNotif()
-}
-
-/** Cek & Minta Izin Notification Listener Service untuk Auto-Stop */
-private fun checkNotificationListenerPermission() {
-    val packageName = packageName
-    val flat = Settings.Secure.getString(contentResolver, "enabled_notification_listeners")
-    val isEnabled = flat != null && flat.contains(packageName)
-
-    if (!isEnabled) {
-        // Tampilkan dialog/toast atau langsung arahkan pengguna ke Pengaturan
-        Toast.makeText(this, "Aktifkan akses notifikasi untuk fitur Auto-Stop Trip Gojek", Toast.LENGTH_LONG).show()
-        val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
-        startActivity(intent)
+        if (!isEnabled) {
+            Toast.makeText(this, "Aktifkan akses notifikasi untuk fitur Auto-Stop Trip Gojek", Toast.LENGTH_LONG).show()
+            val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
+            startActivity(intent)
+        }
     }
-}
 
-// Receiver untuk mendeteksi perintah update UI dari Service
     private val gojekTripReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == "ACTION_GOJEK_TRIP_RECEIVED") {
-                // panggil fungsi perbarui UI Anda di sini
                 refreshSpoofButtonsUI() 
                 Toast.makeText(this@MainActivity, "Auto-Stop: Trip Gojek Diterima!", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    override fun onStart() {
-        super.onStart()
-        // Registrasi Receiver
-        val filter = IntentFilter("ACTION_GOJEK_TRIP_RECEIVED")
-        registerReceiver(gojekTripReceiver, filter)
+    private fun refreshSpoofButtonsUI() {
+        playPanel.refresh(Targets.GOJEK.id)
+        refreshNotif()
     }
-
-    override fun onStop() {
-        super.onStop()
-        // Unregister Receiver agar tidak memicu memory leak
-        unregisterReceiver(gojekTripReceiver)
-    }
-
-    /** Fungsi pembaruan tampilan tombol dan status indikator */
-private fun refreshSpoofButtonsUI() {
-    // 1. Memperbarui status visual tombol Gojek di panel bawah
-    playPanel.refresh(Targets.GOJEK.id)
-    
-    // 2. Memperbarui indikator status notifikasi di sistem
-    refreshNotif()
-}
 }
