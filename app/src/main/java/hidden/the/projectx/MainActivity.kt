@@ -70,11 +70,7 @@ class MainActivity : AppCompatActivity() {
         favorites = FavoritesController(
             this,
             FavoritesStore(this),
-            centerProvider = {
-                val center = map.currentCenter()
-                // Konversi LatLng ke Pair<Double, Double>
-                Pair(center?.latitude ?: 0.0, center?.longitude ?: 0.0)
-            },
+            centerProvider = { map.currentCenter() },
             onPlay = { catId, lat, lng, name ->
                 playFromFavorite(catId, lat, lng, name)
             },
@@ -82,6 +78,7 @@ class MainActivity : AppCompatActivity() {
                 playFromFavorite(catId, lat, lng, name)
             }
         )
+
 
 
 
