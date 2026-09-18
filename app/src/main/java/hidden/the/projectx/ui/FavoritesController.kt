@@ -40,25 +40,23 @@ class FavoritesController(
 
         val btnGrab = view.findViewById<TextView>(R.id.btn_cat_grab)
         val btnGojek = view.findViewById<TextView>(R.id.btn_cat_gojek)
-        val btnPin = view.findViewById<TextView>(R.id.btn_mode_pin)
-        val btnManual = view.findViewById<TextView>(R.id.btn_mode_manual)
         val etName = view.findViewById<EditText>(R.id.et_fav_name)
         val etLat = view.findViewById<EditText>(R.id.et_fav_lat)
         val etLng = view.findViewById<EditText>(R.id.et_fav_lng)
         val btnSave = view.findViewById<View>(R.id.btn_save_fav)
         val rvFav = view.findViewById<RecyclerView>(R.id.rv_favorites)
 
-        rvFav.layoutManager = LinearLayoutManager(context)
+        rvFav?.layoutManager = LinearLayoutManager(context)
 
         fun refreshList() {
             val list = store.get(activeCatId)
-            rvFav.adapter = FavoriteAdapter(
+            rvFav?.adapter = FavoriteAdapter(
                 items = list,
                 onItemClick = { item ->
-                    // 1. Langsung jalankan fungsi Play (GOJEK / GRAB)
+                    // Langsung jalankan fungsi Play (GOJEK / GRAB)
                     onPlay(item.catId, item.lat, item.lng, item.name)
                     
-                    // 2. Langsung tutup menu favorit tanpa dialog konfirmasi
+                    // Langsung tutup menu favorit tanpa dialog konfirmasi
                     sheetDialog?.dismiss()
                 },
                 onDeleteClick = { item ->
@@ -68,18 +66,18 @@ class FavoritesController(
             )
         }
 
-        btnGrab.setOnClickListener {
+        btnGrab?.setOnClickListener {
             activeCatId = Targets.GRAB.id
             refreshList()
         }
 
-        btnGojek.setOnClickListener {
+        btnGojek?.setOnClickListener {
             activeCatId = Targets.GOJEK.id
             refreshList()
         }
 
         btnSave?.setOnClickListener {
-            val name = etName.text.toString().trim()
+            val name = etName?.text.toString().trim()
             if (name.isEmpty()) {
                 Toast.makeText(context, "Nama lokasi tidak boleh kosong", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
@@ -87,18 +85,19 @@ class FavoritesController(
 
             var (lat, lng) = centerProvider()
             if (activeMode == "manual") {
-                val inputLat = etLat.text.toString().toDoubleOrNull()
-                val inputLng = etLng.text.toString().toDoubleOrNull()
+                val inputLat = etLat?.text.toString().toDoubleOrNull()
+                val inputLng = etLng?.text.toString().toDoubleOrNull()
                 if (inputLat != null && inputLng != null) {
                     lat = inputLat
                     lng = inputLng
                 }
             }
 
-            store.add(activeCatId, name, lat, lng)
-            etName.setText("")
-            etLat.setText("")
-            etLng.setText("")
+            // Memanggil store.add dengan parameter yang sesuai
+            store.add(activeCatId, name, lat, lng, "manual")
+            etName?.setText("")
+            etLat?.setText("")
+            etLng?.setText("")
             refreshList()
             Toast.makeText(context, "Favorit disimpan", Toast.LENGTH_SHORT).show()
         }
@@ -115,9 +114,9 @@ class FavoritesController(
     ) : RecyclerView.Adapter<FavoriteAdapter.ViewHolder>() {
 
         inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-            val tvName: TextView = view.findViewById(R.id.tv_item_name)
-            val tvCoords: TextView = view.findViewById(R.id.tv_item_coords)
-            val btnDelete: View = view.findViewById(R.id.btn_delete_item)
+            val tvName: TextView? = view.findViewById(R.id.tv_item_name)
+            val tvCoords: TextView? = view.findViewById(R.id.tv_item_coords)
+            val btnDelete: View? = view.findViewById(R.id.btn_delete_item)
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -128,15 +127,15 @@ class FavoritesController(
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val item = items[position]
-            holder.tvName.text = item.name
-            holder.tvCoords.text = String.format("%.6f, %.6f", item.lat, item.lng)
+            holder.tvName?.text = item.name
+            holder.tvCoords?.text = String.format("%.6f, %.6f", item.lat, item.lng)
 
-            // AKSI TAP ITEM FAVORIT: LANGSUNG PLAY & CLOSE
+            // LANGSUNG PLAY & CLOSE SAAT TAP ITEM FAVORIT
             holder.itemView.setOnClickListener {
                 onItemClick(item)
             }
 
-            holder.btnDelete.setOnClickListener {
+            holder.btnDelete?.setOnClickListener {
                 onDeleteClick(item)
             }
         }
