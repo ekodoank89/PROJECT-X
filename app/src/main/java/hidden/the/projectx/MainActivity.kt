@@ -11,6 +11,8 @@ import android.os.Looper
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.Toast
+import android.provider.Settings
+import androidx.core.app.NotificationManagerCompat
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import hidden.the.projectx.core.ConfigPusher
@@ -231,4 +233,32 @@ class MainActivity : AppCompatActivity() {
         findViewById<ImageButton>(R.id.btn_theme)
             .setImageResource(if (prefs.isDark) R.drawable.ic_sun else R.drawable.ic_moon)
     }
+
+override fun onResume() {
+    super.onResume()
+    if (permissionFlow.hasPermission()) map.ensureBlueDot()
+
+    // Kembali dari Settings → selesaikan tahap tertunda
+    permissionFlow.resumePendingBackground { nextChainStep() }
+
+    // Minta Akses Listen Notifikasi jika belum diaktifkan
+    checkNotificationListenerPermission()
+
+    // Notifikasi indikator sinkron dengan state tersimpan
+    refreshNotif()
+}
+
+/** Cek & Minta Izin Notification Listener Service untuk Auto-Stop */
+private fun checkNotificationListenerPermission() {
+    val packageName = packageName
+    val flat = Settings.Secure.getString(contentResolver, "enabled_notification_listeners")
+    val isEnabled = flat != null && flat.contains(packageName)
+
+    if (!isEnabled) {
+        // Tampilkan dialog/toast atau langsung arahkan pengguna ke Pengaturan
+        Toast.makeText(this, "Aktifkan akses notifikasi untuk fitur Auto-Stop Trip Gojek", Toast.LENGTH_LONG).show()
+        val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
+        startActivity(intent)
+    }
+}
 }
