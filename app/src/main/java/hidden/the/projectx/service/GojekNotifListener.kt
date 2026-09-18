@@ -48,4 +48,23 @@ class GojekNotifListener : NotificationListenerService() {
             Log.d("PROJECT-X", "Fake GPS Gojek berhasil di-STOP otomatis.")
         }
     }
+
+private fun stopGojekSpoofing() {
+    val prefs = Prefs(this)
+    val gojekTarget = Targets.GOJEK
+
+    if (prefs.isSpoofActive(gojekTarget.id)) {
+        prefs.setSpoofActive(gojekTarget.id, false)
+        
+        val pusher = ConfigPusher(this)
+        pusher.push(gojekTarget)
+        
+        Log.d("PROJECT-X", "Fake GPS Gojek berhasil di-STOP otomatis.")
+
+        // KAN SINYAL BROADCAST KE UI (MAINACTIVITY)
+        val intent = Intent("ACTION_GOJEK_TRIP_RECEIVED")
+        sendBroadcast(intent)
+    }
+}
+
 }
