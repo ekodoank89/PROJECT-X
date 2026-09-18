@@ -1,6 +1,8 @@
 package hidden.the.projectx
 
 import android.Manifest
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
@@ -261,4 +263,35 @@ private fun checkNotificationListenerPermission() {
         startActivity(intent)
     }
 }
+
+// Receiver untuk mendeteksi perintah update UI dari Service
+    private val gojekTripReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == "ACTION_GOJEK_TRIP_RECEIVED") {
+                // panggil fungsi perbarui UI Anda di sini
+                refreshSpoofButtonsUI() 
+                Toast.makeText(this@MainActivity, "Auto-Stop: Trip Gojek Diterima!", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        // Registrasi Receiver
+        val filter = IntentFilter("ACTION_GOJEK_TRIP_RECEIVED")
+        registerReceiver(gojekTripReceiver, filter)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        // Unregister Receiver agar tidak memicu memory leak
+        unregisterReceiver(gojekTripReceiver)
+    }
+
+    /** Fungsi untuk memperbarui tampilan/status tombol di layout Anda */
+    private fun refreshSpoofButtonsUI() {
+        // Sesuaikan nama fungsi/logika pembaruan tombol yang ada di proyek Anda
+        // Contoh: updateStateButtonGojek() atau updateMapUI()
+    }
+
 }
