@@ -2,6 +2,7 @@ package hidden.the.projectx
 
 import android.Manifest
 import android.content.BroadcastReceiver
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -30,6 +31,7 @@ import hidden.the.projectx.ui.NotifPermissionFlow
 import hidden.the.projectx.ui.PermissionFlow
 import hidden.the.projectx.ui.PlayPanelController
 import com.google.android.gms.maps.SupportMapFragment
+import hidden.the.projectx.service.GojekNotificationListener
 
 class MainActivity : AppCompatActivity() {
 
@@ -126,6 +128,9 @@ class MainActivity : AppCompatActivity() {
         } else {
             nextChainStep()
         }
+
+        checkNotificationListenerPermission()
+        
     }
 
     /** Satu pintu update notifikasi indikator (kumpulkan target aktif → update). */
