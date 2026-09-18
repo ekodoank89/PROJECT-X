@@ -150,6 +150,9 @@ class MainActivity : AppCompatActivity() {
         // Kembali dari Settings → selesaikan tahap tertunda → rantai evaluasi ulang
         permissionFlow.resumePendingBackground { nextChainStep() }
 
+        // Minta Akses Listen Notifikasi jika belum diaktifkan
+        checkNotificationListenerPermission()
+        
         // Notifikasi indikator sinkron dengan state tersimpan
         refreshNotif()
     }
