@@ -296,10 +296,12 @@ private fun checkNotificationListenerPermission() {
         unregisterReceiver(gojekTripReceiver)
     }
 
-    /** Fungsi untuk memperbarui tampilan/status tombol di layout Anda */
-    private fun refreshSpoofButtonsUI() {
-        // Sesuaikan nama fungsi/logika pembaruan tombol yang ada di proyek Anda
-        // Contoh: updateStateButtonGojek() atau updateMapUI()
-    }
-
+    /** Fungsi pembaruan tampilan tombol dan status indikator */
+private fun refreshSpoofButtonsUI() {
+    // 1. Memperbarui status visual tombol Gojek di panel bawah
+    playPanel.refresh(Targets.GOJEK.id)
+    
+    // 2. Memperbarui indikator status notifikasi di sistem
+    refreshNotif()
+}
 }
