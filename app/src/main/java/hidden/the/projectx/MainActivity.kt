@@ -70,16 +70,19 @@ class MainActivity : AppCompatActivity() {
         favorites = FavoritesController(
             this,
             FavoritesStore(this),
-            centerProvider = { map.currentCenter() },
+            centerProvider = {
+                val center = map.currentCenter()
+                // Konversi LatLng ke Pair<Double, Double>
+                Pair(center?.latitude ?: 0.0, center?.longitude ?: 0.0)
+            },
             onPlay = { catId, lat, lng, name ->
                 playFromFavorite(catId, lat, lng, name)
             },
             onPick = { catId, lat, lng, name ->
-                // MENGHAPUS DIALOG:
-                // Langsung jalankan playFromFavorite (langsung play & close menu favorit)
                 playFromFavorite(catId, lat, lng, name)
             }
         )
+
 
 
         permissionFlow = PermissionFlow(this, prefs) {
