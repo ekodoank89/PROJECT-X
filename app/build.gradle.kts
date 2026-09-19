@@ -14,15 +14,14 @@ android {
         versionCode = 1
         versionName = "1.0.0"
 
-        // Mengambil variabel lingkungan MAPS_API_KEY.
-        // Diberikan fallback string jika environment variable tidak ditemukan.
-        val mapsApiKey = System.getenv("MAPS_API_KEY") ?: "DEFAULT_FALLBACK_KEY"
+        // Mengambil variabel lingkungan MAPS_API_KEY dengan fallback value
+        val mapsApiKey = System.getenv("MAPS_API_KEY") ?: "DEFAULT_MAPS_KEY_FALLBACK"
         manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
     }
 
     signingConfigs {
         create("release") {
-            // Memastikan jalur lokasi file keystore mengarah ke direktori 'app/'
+            // File aya.keystore dihasilkan dari pemrosesan Base64 pada GitHub Actions
             storeFile = file("aya.keystore")
             storePassword = System.getenv("KEYSTORE_PASSWORD") ?: ""
             keyAlias = System.getenv("KEY_ALIAS") ?: ""
@@ -56,6 +55,6 @@ dependencies {
     implementation("com.google.android.gms:play-services-maps:19.0.0")
     implementation("com.google.android.gms:play-services-location:21.3.0")
 
-    // Xposed API: compileOnly agar tidak di-bundle ke dalam APK
+    // Xposed API
     compileOnly("de.robv.android.xposed:api:82")
 }
