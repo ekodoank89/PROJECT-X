@@ -37,6 +37,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var favorites: FavoritesController
     private lateinit var jitter: JitterController
 
+    private var btnGrab: ImageButton? = null
+    private var btnGojek: ImageButton? = null
+
     private val locationPermissionRequest = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -65,6 +68,10 @@ class MainActivity : AppCompatActivity() {
 
         prefs = Prefs(this)
         pusher = ConfigPusher(this)
+
+        // Find View tombol utama
+        btnGrab = findViewById(R.id.btn_grab)
+        btnGojek = findViewById(R.id.btn_gojek)
 
         // 1. Inisialisasi MapController & Attach Fragment
         map = MapController(this, prefs)
@@ -130,12 +137,12 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupBottomPanelButtons() {
         // Tombol Play / Stop GRAB (@id/btn_grab)
-        findViewById<ImageButton>(R.id.btn_grab)?.setOnClickListener {
+        btnGrab?.setOnClickListener {
             toggleTarget(Targets.GRAB.id)
         }
 
         // Tombol Play / Stop GOJEK (@id/btn_gojek)
-        findViewById<ImageButton>(R.id.btn_gojek)?.setOnClickListener {
+        btnGojek?.setOnClickListener {
             toggleTarget(Targets.GOJEK.id)
         }
 
@@ -164,7 +171,7 @@ class MainActivity : AppCompatActivity() {
         prefs.setSpoofPoint(targetId, center.latitude, center.longitude)
         prefs.setSpoofActive(targetId, nextState)
 
-        // Broadcast perubahan ke target via ConfigPusher
+        // Broadcast perubahan ke target & perbarui UI
         updatePlayStopUI()
 
         val statusText = if (nextState) "Aktif" else "Mati"
@@ -209,7 +216,20 @@ class MainActivity : AppCompatActivity() {
 
     fun updatePlayStopUI() {
         runOnUiThread {
+            // Push konfigurasi terbaru ke broadcast receiver
             pusher.pushAll()
+
+            // Update status & background tombol GRAB
+            val isGrabActive = prefs.isSpoofActive(Targets.GRAB.id)
+            btnGrab?.setBackgroundResource(
+                if (isGrabActive) R.drawable.bg_play_red_touch else R.drawable.bg_play_green_touch
+            )
+
+            // Update status & background tombol GOJEK
+            val isGojekActive = prefs.isSpoofActive(Targets.GOJEK.id)
+            btnGojek?.setBackgroundResource(
+                if (isGojekActive) R.drawable.bg_play_red_touch else R.drawable.bg_play_green_touch
+            )
         }
     }
 
