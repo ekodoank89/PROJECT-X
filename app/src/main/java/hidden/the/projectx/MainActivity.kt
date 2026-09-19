@@ -6,37 +6,35 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
 import android.os.Bundle
-import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.gms.maps.model.LatLng
+import hidden.the.projectx.core.ConfigPusher
 import hidden.the.projectx.core.Prefs
 import hidden.the.projectx.ui.FavoritesController
-import hidden.the.projectx.ui.FavoritesStore
+import hidden.the.projectx.ui.JitterController
 import hidden.the.projectx.ui.MapController
 
 class MainActivity : AppCompatActivity() {
 
-    // Action nama Broadcast saat service berhenti (Gojek / Grab / General)
     companion object {
-        const val ACTION_SERVICE_STOPPED = "hidden.the.projectx.ACTION_SERVICE_STOPPED"
         const val ACTION_AUTO_STOP = "hidden.the.projectx.ACTION_AUTO_STOP"
+        const val ACTION_SERVICE_STOPPED = "hidden.the.projectx.ACTION_SERVICE_STOPPED"
     }
 
     private lateinit var prefs: Prefs
+    private lateinit var pusher: ConfigPusher
     private lateinit var map: MapController
     private lateinit var favorites: FavoritesController
+    private lateinit var jitter: JitterController
 
-    // 1. Receiver untuk menangkap event Auto Stop dari Service
+    // Receiver untuk mendengarkan event Auto Fake Stop dari Service
     private val serviceStateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             val action = intent?.action
-            if (action == ACTION_SERVICE_STOPPED || action == ACTION_AUTO_STOP) {
-                // Pastikan pembaruan UI dieksekusi di Main Thread
-                runOnUiThread {
-                    updatePlayStopUI()
-                    Toast.makeText(this@MainActivity, "Spoofing / Auto Fake telah berhenti", Toast.LENGTH_SHORT).show()
-                }
+            if (action == ACTION_AUTO_STOP || action == ACTION_SERVICE_STOPPED) {
+                updatePlayStopUI()
+                Toast.makeText(this@MainActivity, "Auto Fake Stop dipicu", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -46,11 +44,17 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         prefs = Prefs(this)
-        
-        // Inisialisasi FavoritesController dengan animasi flyTo & close otomatis
+        pusher = ConfigPusher(this, prefs)
+
+        // Inisialisasi MapController
+        map = MapController(this, prefs)
+
+        // Inisialisasi FavoritesController
+        // Ketika list favorite di-tap: dialog otomatis close -> peta flyTo ke titik lokasi -> jalankan spoofing
         favorites = FavoritesController(
             this,
-            FavoritesStore(this),
+            prefs,
+            pusher,
             centerProvider = { map.currentCenter() },
             onPlay = { catId, lat, lng, name ->
                 map.flyTo(LatLng(lat, lng))
@@ -62,22 +66,24 @@ class MainActivity : AppCompatActivity() {
             }
         )
 
-        // Register Broadcast Receiver
+        // Inisialisasi JitterController
+        jitter = JitterController(this, prefs, pusher)
+
+        // Register receiver untuk sinkronisasi Auto Stop
         registerServiceReceiver()
 
-        // Sync UI pertama kali
+        // Sync UI status tombol saat awal terbuka
         updatePlayStopUI()
     }
 
     override fun onResume() {
         super.onResume()
-        // 2. Selalu update UI tombol saat aplikasi dibuka kembali ke foreground
+        // Memastikan status UI tombol selalu fresh saat aplikasi kembali aktif
         updatePlayStopUI()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        // Unregister receiver agar tidak memory leak
         try {
             unregisterReceiver(serviceStateReceiver)
         } catch (e: Exception) {
@@ -86,46 +92,19 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Memperbarui visibilitas tombol Play & Stop berdasarkan status service yang berjalan
+     * Memperbarui status UI tombol saat Auto Fake Stop dipicu atau service berhenti
      */
     fun updatePlayStopUI() {
-        // Ambil status service dari Prefs atau Status Tracker Anda
-        val isGojekRunning = prefs.isGojekRunning
-        val isGrabRunning  = prefs.isGrabRunning
-
-        // --- UPDATE UI GOJEK ---
-        val btnPlayGojek = findViewById<View>(R.id.btn_play_gojek) // Sesuaikan ID layout Anda
-        val btnStopGojek = findViewById<View>(R.id.btn_stop_gojek) // Sesuaikan ID layout Anda
-
-        if (btnPlayGojek != null && btnStopGojek != null) {
-            if (isGojekRunning) {
-                btnPlayGojek.visibility = View.GONE
-                btnStopGojek.visibility = View.VISIBLE
-            } else {
-                btnPlayGojek.visibility = View.VISIBLE
-                btnStopGojek.visibility = View.GONE
-            }
-        }
-
-        // --- UPDATE UI GRAB ---
-        val btnPlayGrab = findViewById<View>(R.id.btn_play_grab) // Sesuaikan ID layout Anda
-        val btnStopGrab = findViewById<View>(R.id.btn_stop_grab) // Sesuaikan ID layout Anda
-
-        if (btnPlayGrab != null && btnStopGrab != null) {
-            if (isGrabRunning) {
-                btnPlayGrab.visibility = View.GONE
-                btnStopGrab.visibility = View.VISIBLE
-            } else {
-                btnPlayGrab.visibility = View.VISIBLE
-                btnStopGrab.visibility = View.GONE
-            }
+        runOnUiThread {
+            // Menggunakan ConfigPusher untuk menyinkronkan status service dan UI tombol secara internal
+            pusher.pushAll()
         }
     }
 
     private fun registerServiceReceiver() {
         val filter = IntentFilter().apply {
-            addAction(ACTION_SERVICE_STOPPED)
             addAction(ACTION_AUTO_STOP)
+            addAction(ACTION_SERVICE_STOPPED)
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             registerReceiver(serviceStateReceiver, filter, RECEIVER_NOT_EXPORTED)
@@ -135,7 +114,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun playFromFavorite(catId: String, lat: Double, lng: Double, name: String) {
-        // Logika spoofing lokasi favorit Anda
+        // Logika spoofing lokasi favorit
         updatePlayStopUI()
     }
 }
