@@ -1,8 +1,10 @@
-name: Build PROJECT-X
+name: Android Release Build
 
 on:
   push:
-    branches: [ main ]
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
   workflow_dispatch:
 
 jobs:
@@ -10,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout kode
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Set up JDK 17
@@ -18,54 +20,28 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+          cache: 'gradle'
 
-      - name: Set up Gradle 8.11.1
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.11.1'
+      - name: Grant Execute Permission for Gradlew
+        run: chmod +x gradlew
 
-      - name: Cek kelengkapan secrets
+      # Opsional: Decode file Keystore jika Anda menyimpannya sebagai Base64 di Secrets
+      # Jika file 'aya.keystore' sudah ada di dalam repository app/, Anda bisa menghapus step ini.
+      - name: Decode Keystore
+        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > app/aya.keystore
+
+      - name: Build Release APK
+        run: ./gradlew assembleRelease --stacktrace
         env:
           MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
-          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: |
-          missing=0
-          for v in MAPS_API_KEY KEYSTORE_BASE64 KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
-            if [ -z "${!v}" ]; then
-              echo "::error::Secret '$v' belum diisi atau namanya salah"
-              missing=1
-            fi
-          done
-          exit $missing
 
-      - name: Decode keystore
-        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > app/aya.keystore
-
-      - name: Verifikasi keystore
-        run: |
-          ls -la app/aya.keystore
-          file app/aya.keystore
-
-      - name: Build Release APK
-  env:
-    MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
-    KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-    KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-    KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-  run: ./gradlew assembleRelease --stacktrace
-
-      - name: Rapikan nama APK (versi + build number)
-        run: |
-          mkdir -p apk_out
-          cp app/build/outputs/apk/release/*.apk "apk_out/PROJECT-X-v${{ github.run_number }}.apk"
-          ls -la apk_out/
-
-      - name: Upload APK
+      - name: Upload Release APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: PROJECT-X
-          path: apk_out/*.apk
-          if-no-files-found: error
+          name: app-release
+          path: app/build/outputs/apk/release/*.apk
