@@ -12,17 +12,17 @@ import hidden.the.projectx.core.Targets
 
 /**
  * Controller untuk pengaturan Jitter (Randomize Koordinat).
- * Menyesuaikan konstruktor bawaan MainActivity (Activity, Prefs).
- * Mengingat tab posisi (GRAB | GOJEK) terakhir yang digunakan.
+ * Menerima callback tambahan dari MainActivity & mengingat tab posisi terakhir.
  */
 class JitterController(
     private val activity: Activity,
-    private val prefs: Prefs
+    private val prefs: Prefs,
+    private val onChange: (() -> Unit)? = null // Parameter opsional ke-3 untuk menangani callback dari MainActivity
 ) {
     private var dialog: AlertDialog? = null
 
     companion object {
-        // Menyimpan tab kategori terakhir Jitter
+        // Menyimpan tab kategori terakhir Jitter (Default: GRAB)
         private var lastSelectedCategory: String = Targets.GRAB.id
     }
 
@@ -48,7 +48,7 @@ class JitterController(
 
         fun setCat(c: String) {
             cat = c
-            lastSelectedCategory = c // Simpan status tab terakhir
+            lastSelectedCategory = c // Simpan posisi tab terakhir saat diklik
             
             val sel = R.drawable.bg_mode_on
             val unsel = R.drawable.bg_mode_off
@@ -59,6 +59,8 @@ class JitterController(
             catGrab.setTextColor(if (c == Targets.GRAB.id) on else off)
             catGojek.setBackgroundResource(if (c == Targets.GOJEK.id) sel else unsel)
             catGojek.setTextColor(if (c == Targets.GOJEK.id) on else off)
+            
+            onChange?.invoke()
         }
 
         catGrab.setOnClickListener { setCat(Targets.GRAB.id) }
@@ -70,7 +72,7 @@ class JitterController(
         dialog?.window?.setBackgroundDrawableResource(android.R.color.transparent)
         lebarkan(dialog!!)
 
-        // Terapkan kategori yang diingat sebelum dialog muncul
+        // Posisikan tab sesuai pilihan terakhir sebelum dialog ditampilkan
         setCat(cat)
         dialog?.show()
     }
