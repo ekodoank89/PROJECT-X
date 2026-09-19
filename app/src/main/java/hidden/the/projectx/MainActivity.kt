@@ -157,11 +157,18 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        // Simpan koordinat ke Prefs sesuai targetId
-        prefs.saveCoordinates(targetId, center.latitude, center.longitude)
+        val currentlyActive = prefs.isSpoofActive(targetId)
+        val nextState = !currentlyActive
 
+        // Simpan koordinat ke SharedPreferences via Prefs & atur status aktif
+        prefs.setSpoofPoint(targetId, center.latitude, center.longitude)
+        prefs.setSpoofActive(targetId, nextState)
+
+        // Broadcast perubahan ke target via ConfigPusher
         updatePlayStopUI()
-        Toast.makeText(this, "Lokasi ${targetId.uppercase()} diperbarui", Toast.LENGTH_SHORT).show()
+
+        val statusText = if (nextState) "Aktif" else "Mati"
+        Toast.makeText(this, "Lokasi ${targetId.uppercase()} ($statusText)", Toast.LENGTH_SHORT).show()
     }
 
     private fun checkAndEnableLocation() {
@@ -218,31 +225,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun playFromFavorite(catId: String, lat: Double, lng: Double, name: String) {
-        prefs.saveCoordinates(catId, lat, lng)
+    private fun playFromFavorite(targetId: String, lat: Double, lng: Double, name: String) {
+        // Simpan titik lokasi favorit & aktifkan spoof
+        prefs.setSpoofPoint(targetId, lat, lng)
+        prefs.setSpoofActive(targetId, true)
+
         updatePlayStopUI()
         Toast.makeText(this, "Meluncur ke $name", Toast.LENGTH_SHORT).show()
-    }
-
-    /**
-     * Helper extension function untuk menyimpan Lat/Lng berdasarkan targetId
-     * tanpa harus mengubah implementasi internal kelas Prefs.
-     */
-    private fun Prefs.saveCoordinates(targetId: String, lat: Double, lng: Double) {
-        when (targetId.lowercase()) {
-            "grab" -> {
-                this.latGrab = lat
-                this.lngGrab = lng
-            }
-            "gojek" -> {
-                this.latGojek = lat
-                this.lngGojek = lng
-            }
-            else -> {
-                // Fallback default jika nama target berbeda
-                this.latGrab = lat
-                this.lngGrab = lng
-            }
-        }
     }
 }
