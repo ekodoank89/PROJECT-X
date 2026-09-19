@@ -7,15 +7,17 @@ import android.view.WindowManager
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import hidden.the.projectx.R
+import hidden.the.projectx.core.Prefs
 import hidden.the.projectx.core.Targets
 
 /**
  * Controller untuk pengaturan Jitter (Randomize Koordinat).
+ * Menyesuaikan konstruktor bawaan MainActivity (Activity, Prefs).
  * Mengingat tab posisi (GRAB | GOJEK) terakhir yang digunakan.
  */
 class JitterController(
     private val activity: Activity,
-    private val onJitterChanged: (catId: String, enabled: Boolean) -> Unit
+    private val prefs: Prefs
 ) {
     private var dialog: AlertDialog? = null
 
