@@ -34,6 +34,7 @@ import hidden.the.projectx.ui.PermissionFlow
 import hidden.the.projectx.ui.PlayPanelController
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.CameraUpdateFactory
 import hidden.the.projectx.service.GojekNotifListener // PERBAIKAN 1: Nama class disesuaikan
 
 class MainActivity : AppCompatActivity() {
@@ -73,12 +74,26 @@ class MainActivity : AppCompatActivity() {
             FavoritesStore(this),
             centerProvider = { map.currentCenter() },
             onPlay = { catId, lat, lng, name ->
+                // 1. Buat koordinat lokasi favorit
+                val targetLocation = LatLng(lat, lng)
+
+                // 2. Geser kamera & pin peta ke koordinat favorit
+                // Jika 'map' adalah instance GoogleMap:
+                map.animateCamera(CameraUpdateFactory.newLatLng(targetLocation))
+                
+                // Atau jika 'map' adalah wrapper/class custom di project Anda:
+                // map.moveCamera(lat, lng) 
+
+                // 3. Jalankan fungsi spoofing / play lokasi
                 playFromFavorite(catId, lat, lng, name)
             },
             onPick = { catId, lat, lng, name ->
+                val targetLocation = LatLng(lat, lng)
+                map.animateCamera(CameraUpdateFactory.newLatLng(targetLocation))
                 playFromFavorite(catId, lat, lng, name)
             }
         )
+
 
 
         permissionFlow = PermissionFlow(this, prefs) {
