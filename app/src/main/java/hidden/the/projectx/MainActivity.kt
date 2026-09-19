@@ -269,17 +269,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun launchTargetApp(targetId: String) {
-        // 1. Tentukan list kandidat package berdasarkan targetId ("grab" atau "gojek")
         val packagesToTry = when (targetId.lowercase()) {
             "gojek" -> listOf("com.gojek.partner", "com.gojek.app")
             "grab" -> listOf("com.grabtaxi.driver2", "com.grabtaxi.passenger")
-            else -> {
-                val target = Targets.fromId(targetId)
-                target?.packageNames?.ifEmpty { listOf(target.pkg) } ?: emptyList()
-            }
+            else -> emptyList()
         }
 
-        // 2. Loop dan coba buka package yang ditemukan
         for (pkg in packagesToTry) {
             try {
                 val launchIntent = packageManager.getLaunchIntentForPackage(pkg)
@@ -289,7 +284,7 @@ class MainActivity : AppCompatActivity() {
                     return
                 }
             } catch (_: Exception) {
-                // Abaikan error dan coba package berikutnya
+                // Lanjut ke package berikutnya
             }
         }
 
