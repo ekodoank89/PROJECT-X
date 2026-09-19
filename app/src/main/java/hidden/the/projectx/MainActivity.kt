@@ -259,21 +259,31 @@ class MainActivity : AppCompatActivity() {
     private fun playFromFavorite(catId: String, lat: Double, lng: Double, name: String) {
         val catLower = catId.lowercase()
 
-        // Deteksi target berdasarkan nama/ID kategori
-        val targetsToPlay = when {
-            catLower.contains("gojek") -> listOf("gojek")
-            catLower.contains("grab") -> listOf("grab")
-            else -> listOf("gojek", "grab") // Fallback jika nama kategori bersifat umum
+        // 1. Tentukan target ID menggunakan konsistensi ID dari Targets
+        val targetIds = when {
+            catLower.contains("gojek") -> listOf(Targets.GOJEK.id)
+            catLower.contains("grab") -> listOf(Targets.GRAB.id)
+            else -> listOf(Targets.GOJEK.id, Targets.GRAB.id) // Fallback jika kategori umum
         }
 
-        for (target in targetsToPlay) {
-            prefs.setSpoofPoint(target, lat, lng)
-            prefs.setSpoofActive(target, true)
-            launchTargetApp(target)
+        // 2. Simpan titik koordinat & aktifkan status spoof (PLAY)
+        for (targetId in targetIds) {
+            prefs.setSpoofPoint(targetId, lat, lng)
+            prefs.setSpoofActive(targetId, true)
         }
 
+        // 3. Wajib PUSH konfigurasi terbaru ke Broadcast Receiver / Service
+        pusher.pushAll()
+
+        // 4. Perbarui UI Tombol Play/Stop di MainActivity
         updatePlayStopUI()
+
         Toast.makeText(this, "Meluncur ke $name", Toast.LENGTH_SHORT).show()
+
+        // 5. Buka aplikasi target (Gojek / Grab)
+        for (targetId in targetIds) {
+            launchTargetApp(targetId)
+        }
     }
 
     private fun launchTargetApp(targetId: String) {
