@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ID Resource untuk Controller Panel Utama (Grab & Gojek) -->
+    <item name="btn_grab" type="id" />
+    <item name="dot_grab" type="id" />
+    <item name="btn_gojek" type="id" />
+    <item name="dot_gojek" type="id" />
+</resources>
