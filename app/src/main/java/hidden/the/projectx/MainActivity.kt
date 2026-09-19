@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.gms.maps.model.LatLng
 import hidden.the.projectx.core.ConfigPusher
+import hidden.the.projectx.core.FavoritesStore
 import hidden.the.projectx.core.Prefs
 import hidden.the.projectx.ui.FavoritesController
 import hidden.the.projectx.ui.JitterController
@@ -28,7 +29,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var favorites: FavoritesController
     private lateinit var jitter: JitterController
 
-    // Receiver untuk mendengarkan event Auto Fake Stop dari Service
     private val serviceStateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             val action = intent?.action
@@ -44,17 +44,15 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         prefs = Prefs(this)
-        pusher = ConfigPusher(this, prefs)
+        // Fix 1: ConfigPusher hanya menerima 1 parameter (Context)
+        pusher = ConfigPusher(this)
 
-        // Inisialisasi MapController
         map = MapController(this, prefs)
 
-        // Inisialisasi FavoritesController
-        // Ketika list favorite di-tap: dialog otomatis close -> peta flyTo ke titik lokasi -> jalankan spoofing
+        // Fix 2: FavoritesController menggunakan FavoritesStore sebagai parameter ke-2
         favorites = FavoritesController(
             this,
-            prefs,
-            pusher,
+            FavoritesStore(this),
             centerProvider = { map.currentCenter() },
             onPlay = { catId, lat, lng, name ->
                 map.flyTo(LatLng(lat, lng))
@@ -66,19 +64,14 @@ class MainActivity : AppCompatActivity() {
             }
         )
 
-        // Inisialisasi JitterController
         jitter = JitterController(this, prefs, pusher)
 
-        // Register receiver untuk sinkronisasi Auto Stop
         registerServiceReceiver()
-
-        // Sync UI status tombol saat awal terbuka
         updatePlayStopUI()
     }
 
     override fun onResume() {
         super.onResume()
-        // Memastikan status UI tombol selalu fresh saat aplikasi kembali aktif
         updatePlayStopUI()
     }
 
@@ -91,12 +84,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Memperbarui status UI tombol saat Auto Fake Stop dipicu atau service berhenti
-     */
     fun updatePlayStopUI() {
         runOnUiThread {
-            // Menggunakan ConfigPusher untuk menyinkronkan status service dan UI tombol secara internal
             pusher.pushAll()
         }
     }
@@ -114,7 +103,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun playFromFavorite(catId: String, lat: Double, lng: Double, name: String) {
-        // Logika spoofing lokasi favorit
         updatePlayStopUI()
     }
 }
