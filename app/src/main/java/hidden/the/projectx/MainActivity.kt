@@ -157,9 +157,8 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        // Simpan koordinat dari titik tengah peta & push konfigurasi
-        prefs.setLat(targetId, center.latitude)
-        prefs.setLng(targetId, center.longitude)
+        // Simpan koordinat ke Prefs sesuai targetId
+        prefs.saveCoordinates(targetId, center.latitude, center.longitude)
 
         updatePlayStopUI()
         Toast.makeText(this, "Lokasi ${targetId.uppercase()} diperbarui", Toast.LENGTH_SHORT).show()
@@ -220,9 +219,30 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun playFromFavorite(catId: String, lat: Double, lng: Double, name: String) {
-        prefs.setLat(catId, lat)
-        prefs.setLng(catId, lng)
+        prefs.saveCoordinates(catId, lat, lng)
         updatePlayStopUI()
         Toast.makeText(this, "Meluncur ke $name", Toast.LENGTH_SHORT).show()
+    }
+
+    /**
+     * Helper extension function untuk menyimpan Lat/Lng berdasarkan targetId
+     * tanpa harus mengubah implementasi internal kelas Prefs.
+     */
+    private fun Prefs.saveCoordinates(targetId: String, lat: Double, lng: Double) {
+        when (targetId.lowercase()) {
+            "grab" -> {
+                this.latGrab = lat
+                this.lngGrab = lng
+            }
+            "gojek" -> {
+                this.latGojek = lat
+                this.lngGojek = lng
+            }
+            else -> {
+                // Fallback default jika nama target berbeda
+                this.latGrab = lat
+                this.lngGrab = lng
+            }
+        }
     }
 }
