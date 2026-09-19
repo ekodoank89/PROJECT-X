@@ -29,6 +29,11 @@ class FavoritesController(
 ) {
     private var dialog: AlertDialog? = null
 
+    companion object {
+        // Menyimpan tab terakhir yang dipilih (default: GRAB)
+        private var lastSelectedCategory: String = Targets.GRAB.id
+    }
+    
     fun bind(btnId: Int) {
         activity.findViewById<View>(btnId).setOnClickListener { show() }
     }
@@ -70,7 +75,8 @@ class FavoritesController(
         val list      = v.findViewById<LinearLayout>(R.id.fav_list)
         val empty     = v.findViewById<TextView>(R.id.fav_empty)
 
-        var cat = Targets.GRAB.id
+        // Gunakan nilai terakhir yang tersimpan
+        var cat = lastSelectedCategory
         var mode = "pin"
 
         fun clearErr() {
@@ -104,6 +110,8 @@ class FavoritesController(
 
         fun setCat(c: String) {
             cat = c
+            lastSelectedCategory = c // <-- SIMPAN POSISI TAB TERAKHIR
+            
             val sel = R.drawable.bg_mode_on
             val unsel = R.drawable.bg_mode_off
             val on = 0xFFC8F7D8.toInt()
@@ -115,6 +123,9 @@ class FavoritesController(
             clearErr()
             render()
         }
+        // Terapkan kategori awal sesuai posisi terakhir saat dialog dibuka
+        setCat(cat)
+
         catGrab.setOnClickListener { setCat(Targets.GRAB.id) }
         catGojek.setOnClickListener { setCat(Targets.GOJEK.id) }
 
