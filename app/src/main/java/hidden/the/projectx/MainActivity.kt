@@ -1,7 +1,6 @@
 package hidden.the.projectx
 
 import android.os.Bundle
-import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -13,41 +12,29 @@ class MainActivity : AppCompatActivity() {
     private lateinit var prefs: Prefs
     private lateinit var permissionFlow: PermissionFlow
 
-    private lateinit var tvStatus: TextView
-    private lateinit var btnStartService: Button
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         prefs = Prefs(this)
 
-        // Inisialisasi Komponen UI dari Layout
-        tvStatus = findViewById(R.id.tvStatus) // Sesuaikan ID jika berbeda di layout Anda
-        btnStartService = findViewById(R.id.btnStartService) // Sesuaikan ID jika berbeda
-
         // Inisialisasi PermissionFlow
         permissionFlow = PermissionFlow(
             activity = this,
             prefs = prefs,
             onGranted = {
-                // Dipanggil saat "Izin lokasi diberikan"
-                updateUIOnPermissionGranted()
+                // Callback saat izin lokasi aktif
+                updateStatusUI()
             }
         ).apply {
             onSettled = {
                 if (!hasPermission()) {
-                    tvStatus.text = "Status: Izin Lokasi Diperlukan"
+                    Toast.makeText(
+                        this@MainActivity,
+                        "Izin lokasi diperlukan untuk menjalankan aplikasi",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
-            }
-        }
-
-        // Setup Listener Tombol Mulai Layanan
-        btnStartService.setOnClickListener {
-            if (permissionFlow.hasPermission()) {
-                startMainService()
-            } else {
-                permissionFlow.requestOrGuide()
             }
         }
 
@@ -57,27 +44,24 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        // Tangkap kembali jika user mengubah izin via Settings
+        // Tangkap status setelah user kembali dari Pengaturan (Settings)
         permissionFlow.resumePendingBackground {
             if (permissionFlow.hasPermission()) {
-                updateUIOnPermissionGranted()
+                updateStatusUI()
             }
         }
     }
 
     /**
-     * Memperbarui UI dari "Memeriksa..." menjadi Siap setelah izin diberikan
+     * Memperbarui status UI saat izin lokasi telah diberikan
      */
-    private fun updateUIOnPermissionGranted() {
+    private fun updateStatusUI() {
         runOnUiThread {
-            tvStatus.text = "Status: Siap / Layanan Nonaktif"
-            // Atau jika layanan sudah berjalan: tvStatus.text = "Status: Layanan Aktif"
-        }
-    }
+            // Mencari TextView status berdasarkan ID umum atau mengubah status secara internal
+            val tvStatus = findViewById<TextView>(R.id.tvStatus)
+                ?: findViewById<TextView>(resources.getIdentifier("tv_status", "id", packageName))
 
-    private fun startMainService() {
-        // Logika untuk menjalankan layanan/spoofing Anda
-        tvStatus.text = "Status: Layanan Berjalan"
-        Toast.makeText(this, "Layanan berhasil dimulaikan", Toast.LENGTH_SHORT).show()
+            tvStatus?.text = "Status: Siap"
+        }
     }
 }
