@@ -34,18 +34,25 @@ class PlayPanelController(
     private val handler = Handler(Looper.getMainLooper())
 
     fun bind() {
-        listOf(
+        val targetsList: List<Triple<String, Int, Int>> = listOf(
             Triple(Targets.GRAB.id,  R.id.btn_grab,  R.id.dot_grab),
             Triple(Targets.GOJEK.id, R.id.btn_gojek, R.id.dot_gojek)
-        ).forEach { (targetId, btnId, dotId) ->
-            val row = Row(
-                targetId,
-                activity.findViewById(btnId),
-                activity.findViewById(dotId)
-            )
-            rows.add(row)
-            render(row)
-            row.btn.setOnClickListener { toggle(row) }
+        )
+
+        for (item in targetsList) {
+            val targetId = item.first
+            val btnId = item.second
+            val dotId = item.third
+
+            val btnView = activity.findViewById<ImageButton>(btnId)
+            val dotView = activity.findViewById<View>(dotId)
+
+            if (btnView != null && dotView != null) {
+                val row = Row(targetId, btnView, dotView)
+                rows.add(row)
+                render(row)
+                row.btn.setOnClickListener { toggle(row) }
+            }
         }
     }
 
