@@ -8,6 +8,7 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.ImageButton
 import android.widget.Toast
@@ -27,6 +28,7 @@ import hidden.the.projectx.ui.MapController
 class MainActivity : AppCompatActivity() {
 
     companion object {
+        private const val TAG = "MainActivity"
         const val ACTION_AUTO_STOP = "hidden.the.projectx.ACTION_AUTO_STOP"
         const val ACTION_SERVICE_STOPPED = "hidden.the.projectx.ACTION_SERVICE_STOPPED"
     }
@@ -257,55 +259,70 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun playFromFavorite(catId: String, lat: Double, lng: Double, name: String) {
-        val catLower = catId.lowercase()
+        val combinedText = "${catId.lowercase()} ${name.lowercase()}"
 
-        // 1. Tentukan target ID menggunakan konsistensi ID dari Targets
+        // Deteksi target secara fleksibel dari nama/ID kategori DAN nama item favorit
         val targetIds = when {
-            catLower.contains("gojek") -> listOf(Targets.GOJEK.id)
-            catLower.contains("grab") -> listOf(Targets.GRAB.id)
-            else -> listOf(Targets.GOJEK.id, Targets.GRAB.id) // Fallback jika kategori umum
+            combinedText.contains("gojek") -> listOf(Targets.GOJEK.id)
+            combinedText.contains("grab") -> listOf(Targets.GRAB.id)
+            else -> listOf(Targets.GOJEK.id, Targets.GRAB.id) // Fallback aktifkan keduanya jika tidak terdeteksi
         }
 
-        // 2. Simpan titik koordinat & aktifkan status spoof (PLAY)
+        // 1. Simpan koordinat dan aktifkan spoofing
         for (targetId in targetIds) {
             prefs.setSpoofPoint(targetId, lat, lng)
             prefs.setSpoofActive(targetId, true)
         }
 
-        // 3. Wajib PUSH konfigurasi terbaru ke Broadcast Receiver / Service
+        // 2. Wajib push konfigurasi terbaru ke receiver
         pusher.pushAll()
 
-        // 4. Perbarui UI Tombol Play/Stop di MainActivity
+        // 3. Perbarui tampilan UI tombol
         updatePlayStopUI()
 
         Toast.makeText(this, "Meluncur ke $name", Toast.LENGTH_SHORT).show()
 
-        // 5. Buka aplikasi target (Gojek / Grab)
+        // 4. Buka aplikasi target
         for (targetId in targetIds) {
             launchTargetApp(targetId)
         }
     }
 
     private fun launchTargetApp(targetId: String) {
-        val packagesToTry = when (targetId.lowercase()) {
-            "gojek" -> listOf("com.gojek.partner", "com.gojek.app")
-            "grab" -> listOf("com.grabtaxi.driver2", "com.grabtaxi.passenger")
+        val targetLower = targetId.lowercase()
+
+        // Package list lengkap (Driver + Passenger sebagai cadangan)
+        val packagesToTry = when {
+            targetLower.contains("gojek") -> listOf("com.gojek.partner", "com.gojek.app")
+            targetLower.contains("grab") -> listOf("com.grabtaxi.driver2", "com.grabtaxi.passenger")
             else -> emptyList()
         }
 
         for (pkg in packagesToTry) {
             try {
+                // Gunakan getLaunchIntentForPackage
                 val launchIntent = packageManager.getLaunchIntentForPackage(pkg)
                 if (launchIntent != null) {
-                    launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)
                     startActivity(launchIntent)
+                    Log.d(TAG, "Berhasil membuka aplikasi: $pkg")
+                    return
+                } else {
+                    // Fallback jika launchIntent null tetapi package terpasang
+                    val fallbackIntent = Intent(Intent.ACTION_MAIN).apply {
+                        addCategory(Intent.CATEGORY_LAUNCHER)
+                        setPackage(pkg)
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    startActivity(fallbackIntent)
+                    Log.d(TAG, "Berhasil membuka via fallback intent: $pkg")
                     return
                 }
-            } catch (_: Exception) {
-                // Lanjut coba package berikutnya
+            } catch (e: Exception) {
+                Log.e(TAG, "Gagal membuka $pkg: ${e.message}")
             }
         }
 
-        Toast.makeText(this, "Aplikasi target ($targetId) tidak terpasang", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "Aplikasi target ($targetId) tidak terpasang di HP ini", Toast.LENGTH_SHORT).show()
     }
 }
