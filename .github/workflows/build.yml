@@ -50,12 +50,12 @@ jobs:
           file app/aya.keystore
 
       - name: Build Release APK
-        env:
-          MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: gradle assembleRelease --stacktrace
+  env:
+    MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
+    KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+    KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+    KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+  run: ./gradlew assembleRelease --stacktrace
 
       - name: Rapikan nama APK (versi + build number)
         run: |
