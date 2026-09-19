@@ -16,9 +16,9 @@ import com.google.android.gms.maps.model.LatLng
 import java.util.Locale
 
 /**
- * Dialog favorit — v2.8: PER KATEGORI (GRAB | GOJEK).
+ * Dialog favorit — PER KATEGORI (GRAB | GOJEK).
  * Direct Play: tap nama favorit → langsung aktif & close menu favorit.
- * Semua dialog dikartukan solid + dilebarkan 92% via helper.
+ * Mengingat tab terakhir yang dipilih saat dibuka kembali.
  */
 class FavoritesController(
     private val activity: Activity,
@@ -30,10 +30,10 @@ class FavoritesController(
     private var dialog: AlertDialog? = null
 
     companion object {
-        // Menyimpan tab terakhir yang dipilih (default: GRAB)
+        // Menyimpan status tab terakhir (Default: GRAB)
         private var lastSelectedCategory: String = Targets.GRAB.id
     }
-    
+
     fun bind(btnId: Int) {
         activity.findViewById<View>(btnId).setOnClickListener { show() }
     }
@@ -75,7 +75,7 @@ class FavoritesController(
         val list      = v.findViewById<LinearLayout>(R.id.fav_list)
         val empty     = v.findViewById<TextView>(R.id.fav_empty)
 
-        // Gunakan nilai terakhir yang tersimpan
+        // Menggunakan kategori terakhir yang disimpan
         var cat = lastSelectedCategory
         var mode = "pin"
 
@@ -99,7 +99,7 @@ class FavoritesController(
                 item.findViewById<View>(R.id.if_edit).setOnClickListener { showEdit(cat, i) }
                 item.findViewById<View>(R.id.if_del).setOnClickListener { askDelete(cat, i) }
                 
-                // LANGSUNG PLAY DAN TUTUP DIALOG SAAT ITEM DITAP
+                // Langsung Play dan Tutup Dialog
                 item.setOnClickListener {
                     onPlay(cat, f.lat, f.lng, f.name)
                     dialog?.dismiss()
@@ -110,7 +110,7 @@ class FavoritesController(
 
         fun setCat(c: String) {
             cat = c
-            lastSelectedCategory = c // <-- SIMPAN POSISI TAB TERAKHIR
+            lastSelectedCategory = c // Simpan pilihan tab ke memori
             
             val sel = R.drawable.bg_mode_on
             val unsel = R.drawable.bg_mode_off
@@ -123,11 +123,6 @@ class FavoritesController(
             clearErr()
             render()
         }
-        // Terapkan kategori awal sesuai posisi terakhir saat dialog dibuka
-        setCat(cat)
-
-        catGrab.setOnClickListener { setCat(Targets.GRAB.id) }
-        catGojek.setOnClickListener { setCat(Targets.GOJEK.id) }
 
         fun setMode(m: String) {
             mode = m
@@ -142,6 +137,9 @@ class FavoritesController(
             latlngRow.visibility = if (m == "manual") View.VISIBLE else View.GONE
             clearErr()
         }
+
+        catGrab.setOnClickListener { setCat(Targets.GRAB.id) }
+        catGojek.setOnClickListener { setCat(Targets.GOJEK.id) }
         modePin.setOnClickListener { setMode("pin") }
         modeManual.setOnClickListener { setMode("manual") }
 
@@ -210,11 +208,12 @@ class FavoritesController(
             .create()
         dialog?.window?.setBackgroundDrawableResource(android.R.color.transparent)
         lebarkan(dialog!!)
+        
+        // Atur posisi tab sesuai memori sebelum menampilkan UI
+        setCat(cat)
         dialog?.show()
-        render()
     }
 
-    // ===== EDIT: nama + koordinat (kartu solid + 92% lebar) =====
     private fun showEdit(cat: String, i: Int) {
         val f = store.all(cat).getOrNull(i) ?: return
         val v = LayoutInflater.from(activity).inflate(R.layout.dialog_edit_fav, null)
@@ -230,7 +229,7 @@ class FavoritesController(
             .setView(v)
             .create()
         d.window?.setBackgroundDrawableResource(R.drawable.bg_dialog_card)
-        lebarkan(d)   // ← dialog edit 92% lebar layar — sama dengan dialog utama
+        lebarkan(d)
 
         v.findViewById<View>(R.id.e_cancel).setOnClickListener { d.dismiss() }
         v.findViewById<View>(R.id.e_save).setOnClickListener {
@@ -259,10 +258,9 @@ class FavoritesController(
         d.show()
     }
 
-    // ===== HAPUS: konfirmasi =====
     private fun askDelete(cat: String, i: Int) {
         val f = store.all(cat).getOrNull(i) ?: return
-        val d = AlertDialog.Builder(activity, R.style.Theme_PROJECTX_Dialog)
+        AlertDialog.Builder(activity, R.style.Theme_PROJECTX_Dialog)
             .setTitle("Hapus lokasi?")
             .setMessage("\"${f.name}\" akan dihapus permanen dari kategori ini.")
             .setPositiveButton("Hapus") { _, _ ->
