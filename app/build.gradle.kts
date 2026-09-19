@@ -14,17 +14,19 @@ android {
         versionCode = 1
         versionName = "1.0.0"
 
-        // Mengambil dari variabel lingkungan atau Secrets CI/CD
-        val mapsKey = System.getenv("MAPS_API_KEY") ?: "DEFAULT_MAPS_KEY_FALLBACK"
-        manifestPlaceholders["MAPS_API_KEY"] = mapsKey
+        // Mengambil variabel lingkungan MAPS_API_KEY.
+        // Diberikan fallback string jika environment variable tidak ditemukan.
+        val mapsApiKey = System.getenv("MAPS_API_KEY") ?: "DEFAULT_FALLBACK_KEY"
+        manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
     }
 
     signingConfigs {
         create("release") {
+            // Memastikan jalur lokasi file keystore mengarah ke direktori 'app/'
             storeFile = file("aya.keystore")
-            storePassword = System.getenv("KEYSTORE_PASSWORD")
-            keyAlias = System.getenv("KEY_ALIAS")
-            keyPassword = System.getenv("KEY_PASSWORD")
+            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: ""
+            keyAlias = System.getenv("KEY_ALIAS") ?: ""
+            keyPassword = System.getenv("KEY_PASSWORD") ?: ""
         }
     }
 
@@ -32,6 +34,10 @@ android {
         release {
             isMinifyEnabled = false
             signingConfig = signingConfigs.getByName("release")
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
 
@@ -39,6 +45,7 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+
     kotlinOptions {
         jvmTarget = "17"
     }
@@ -49,6 +56,6 @@ dependencies {
     implementation("com.google.android.gms:play-services-maps:19.0.0")
     implementation("com.google.android.gms:play-services-location:21.3.0")
 
-    // Xposed API
+    // Xposed API: compileOnly agar tidak di-bundle ke dalam APK
     compileOnly("de.robv.android.xposed:api:82")
 }
