@@ -13,7 +13,10 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0.0"
-        manifestPlaceholders["MAPS_API_KEY"] = System.getenv("MAPS_API_KEY") ?: ""
+
+        // Mengambil dari variabel lingkungan atau Secrets CI/CD
+        val mapsKey = System.getenv("MAPS_API_KEY") ?: "DEFAULT_MAPS_KEY_FALLBACK"
+        manifestPlaceholders["MAPS_API_KEY"] = mapsKey
     }
 
     signingConfigs {
@@ -46,6 +49,6 @@ dependencies {
     implementation("com.google.android.gms:play-services-maps:19.0.0")
     implementation("com.google.android.gms:play-services-location:21.3.0")
 
-    // Xposed API: compileOnly = TIDAK ikut ter-dex ke APK (LSPosed menyediakannya saat runtime)
+    // Xposed API
     compileOnly("de.robv.android.xposed:api:82")
 }
