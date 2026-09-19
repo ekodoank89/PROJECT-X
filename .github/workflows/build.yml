@@ -1,10 +1,8 @@
-name: Android Release Build
+name: Build PROJECT-X
 
 on:
   push:
-    branches: [ "main", "master" ]
-  pull_request:
-    branches: [ "main", "master" ]
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
@@ -12,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout kode
         uses: actions/checkout@v4
 
       - name: Set up JDK 17
@@ -21,24 +19,44 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      # Otomatis menangani setup Gradle & caching
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
-
-      - name: Decode Keystore from Secrets
+      - name: Cek kelengkapan secrets
+        env:
+          MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > app/aya.keystore
+          missing=0
+          for v in MAPS_API_KEY KEYSTORE_BASE64 KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
+            if [ -z "${!v}" ]; then
+              echo "::error::Secret '$v' belum diisi atau namanya salah"
+              missing=1
+            fi
+          done
+          exit $missing
+
+      - name: Decode keystore
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > app/aya.keystore
 
       - name: Build Release APK
-        run: gradle assembleRelease --stacktrace
         env:
           MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --stacktrace
 
-      - name: Upload Release APK Artifact
+      - name: Rapikan nama APK (versi + build number)
+        run: |
+          mkdir -p apk_out
+          cp app/build/outputs/apk/release/*.apk "apk_out/PROJECT-X-v${{ github.run_number }}.apk"
+
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-release
-          path: app/build/outputs/apk/release/*.apk
+          name: PROJECT-X
+          path: apk_out/*.apk
+          if-no-files-found: error
