@@ -74,17 +74,18 @@ class MainActivity : AppCompatActivity() {
             FavoritesStore(this),
             centerProvider = { map.currentCenter() },
             onPlay = { catId, lat, lng, name ->
-                // Pindahkan posisi peta/pin ke koordinat favorit menggunakan wrapper 'map'
-                map.move(lat, lng)
+                // 1. Pindahkan kamera peta ke lokasi favorit yang di-tap
+                map.flyTo(com.google.android.gms.maps.model.LatLng(lat, lng))
 
-                // Jalankan fungsi play dari favorit
+                // 2. Jalankan fungsi spoofing / play lokasi
                 playFromFavorite(catId, lat, lng, name)
             },
             onPick = { catId, lat, lng, name ->
-                map.move(lat, lng)
+                map.flyTo(com.google.android.gms.maps.model.LatLng(lat, lng))
                 playFromFavorite(catId, lat, lng, name)
             }
         )
+
 
         permissionFlow = PermissionFlow(this, prefs) {
             map.ensureBlueDot()
