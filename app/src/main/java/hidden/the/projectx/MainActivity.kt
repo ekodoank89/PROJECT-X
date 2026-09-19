@@ -69,32 +69,22 @@ class MainActivity : AppCompatActivity() {
         pusher = ConfigPusher(this)
         notifs = NotifController(this)
         notifPerm = NotifPermissionFlow(this, notifPermLauncher)
-                favorites = FavoritesController(
+        favorites = FavoritesController(
             this,
             FavoritesStore(this),
             centerProvider = { map.currentCenter() },
             onPlay = { catId, lat, lng, name ->
-                // 1. Buat koordinat lokasi favorit
-                val targetLocation = LatLng(lat, lng)
+                // Pindahkan posisi peta/pin ke koordinat favorit menggunakan wrapper 'map'
+                map.move(lat, lng)
 
-                // 2. Geser kamera & pin peta ke koordinat favorit
-                // Jika 'map' adalah instance GoogleMap:
-                map.animateCamera(CameraUpdateFactory.newLatLng(targetLocation))
-                
-                // Atau jika 'map' adalah wrapper/class custom di project Anda:
-                // map.moveCamera(lat, lng) 
-
-                // 3. Jalankan fungsi spoofing / play lokasi
+                // Jalankan fungsi play dari favorit
                 playFromFavorite(catId, lat, lng, name)
             },
             onPick = { catId, lat, lng, name ->
-                val targetLocation = LatLng(lat, lng)
-                map.animateCamera(CameraUpdateFactory.newLatLng(targetLocation))
+                map.move(lat, lng)
                 playFromFavorite(catId, lat, lng, name)
             }
         )
-
-
 
         permissionFlow = PermissionFlow(this, prefs) {
             map.ensureBlueDot()
