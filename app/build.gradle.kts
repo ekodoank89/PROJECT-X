@@ -14,7 +14,6 @@ android {
         versionCode = 1
         versionName = "1.0.0"
 
-        // Ambil variabel environment atau berikan string default agar Manifest tidak crash
         val mapsApiKey = System.getenv("MAPS_API_KEY") ?: "DEFAULT_KEY_FALLBACK"
         manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
     }
@@ -44,7 +43,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    // Menggantikan kotlinOptions yang deprecated untuk kompatibilitas Gradle 9+
     kotlin {
         compilerOptions {
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
