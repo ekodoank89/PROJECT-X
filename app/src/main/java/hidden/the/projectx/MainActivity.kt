@@ -69,7 +69,7 @@ class MainActivity : AppCompatActivity() {
         prefs = Prefs(this)
         pusher = ConfigPusher(this)
 
-        // Find View tombol utama
+        // Binding View Tombol Utama
         btnGrab = findViewById(R.id.btn_grab)
         btnGojek = findViewById(R.id.btn_gojek)
 
@@ -176,6 +176,11 @@ class MainActivity : AppCompatActivity() {
 
         val statusText = if (nextState) "Aktif" else "Mati"
         Toast.makeText(this, "Lokasi ${targetId.uppercase()} ($statusText)", Toast.LENGTH_SHORT).show()
+
+        // Buka aplikasi target jika status berubah ke aktif (PLAY)
+        if (nextState) {
+            launchTargetApp(targetId)
+        }
     }
 
     private fun checkAndEnableLocation() {
@@ -219,16 +224,22 @@ class MainActivity : AppCompatActivity() {
             // Push konfigurasi terbaru ke broadcast receiver
             pusher.pushAll()
 
-            // Update status & background tombol GRAB
+            // Update Background & Icon Tombol GRAB
             val isGrabActive = prefs.isSpoofActive(Targets.GRAB.id)
             btnGrab?.setBackgroundResource(
                 if (isGrabActive) R.drawable.bg_play_red_touch else R.drawable.bg_play_green_touch
             )
+            btnGrab?.setImageResource(
+                if (isGrabActive) R.drawable.ic_stop else R.drawable.ic_play
+            )
 
-            // Update status & background tombol GOJEK
+            // Update Background & Icon Tombol GOJEK
             val isGojekActive = prefs.isSpoofActive(Targets.GOJEK.id)
             btnGojek?.setBackgroundResource(
                 if (isGojekActive) R.drawable.bg_play_red_touch else R.drawable.bg_play_green_touch
+            )
+            btnGojek?.setImageResource(
+                if (isGojekActive) R.drawable.ic_stop else R.drawable.ic_play
             )
         }
     }
@@ -252,5 +263,36 @@ class MainActivity : AppCompatActivity() {
 
         updatePlayStopUI()
         Toast.makeText(this, "Meluncur ke $name", Toast.LENGTH_SHORT).show()
+
+        // Otomatis membuka aplikasi target (Grab / Gojek)
+        launchTargetApp(targetId)
+    }
+
+    private fun launchTargetApp(targetId: String) {
+        // 1. Tentukan list kandidat package berdasarkan targetId ("grab" atau "gojek")
+        val packagesToTry = when (targetId.lowercase()) {
+            "gojek" -> listOf("com.gojek.partner", "com.gojek.app")
+            "grab" -> listOf("com.grabtaxi.driver2", "com.grabtaxi.passenger")
+            else -> {
+                val target = Targets.fromId(targetId)
+                target?.packageNames?.ifEmpty { listOf(target.pkg) } ?: emptyList()
+            }
+        }
+
+        // 2. Loop dan coba buka package yang ditemukan
+        for (pkg in packagesToTry) {
+            try {
+                val launchIntent = packageManager.getLaunchIntentForPackage(pkg)
+                if (launchIntent != null) {
+                    launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    startActivity(launchIntent)
+                    return
+                }
+            } catch (_: Exception) {
+                // Abaikan error dan coba package berikutnya
+            }
+        }
+
+        Toast.makeText(this, "Aplikasi target ($targetId) tidak terpasang", Toast.LENGTH_SHORT).show()
     }
 }
