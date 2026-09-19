@@ -5,12 +5,12 @@ plugins {
 
 android {
     namespace = "hidden.the.projectx"
-    compileSdk = 36
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "hidden.the.projectx"
         minSdk = 30
-        targetSdk = 36
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0.0"
         manifestPlaceholders["MAPS_API_KEY"] = System.getenv("MAPS_API_KEY") ?: ""
