@@ -38,7 +38,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var notifPerm: NotifPermissionFlow
     private lateinit var jitter: JitterController
 
-    // Launcher izin notifikasi — WAJIB field (terdaftar sebelum onStart).
+    // Launcher izin notifikasi
     private val notifPermLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) {
@@ -80,7 +80,6 @@ class MainActivity : AppCompatActivity() {
 
         permissionFlow.onSettled = { nextChainStep() }
 
-        // PlayPanel mem-push sendiri saat toggle
         playPanel = PlayPanelController(
             this, prefs,
             pusher = pusher,
@@ -95,30 +94,37 @@ class MainActivity : AppCompatActivity() {
             announce(target, active)
         }
 
-        favorites.bind(R.id.btn_fav)
+        // Dapatkan Res ID secara dinamis untuk menghindari Unresolved Reference
+        val favId = getResId("btn_fav")
+        if (favId != 0) favorites.bind(favId)
 
-        // ==== JITTER ====
         jitter = JitterController(this, prefs, pusher)
-        jitter.bind(R.id.btn_jitter)
+        val jitterId = getResId("btn_jitter")
+        if (jitterId != 0) jitter.bind(jitterId)
 
-        findViewById<Button>(R.id.btn_zoom_in).setOnClickListener { map.zoomMax() }
-        findViewById<Button>(R.id.btn_zoom_out).setOnClickListener { map.zoomOut() }
-        findViewById<ImageButton>(R.id.btn_my_location).setOnClickListener {
+        findViewByName<Button>("btn_zoom_in")?.setOnClickListener { map.zoomMax() }
+        findViewByName<Button>("btn_zoom_out")?.setOnClickListener { map.zoomOut() }
+        findViewByName<ImageButton>("btn_my_location")?.setOnClickListener {
             permissionFlow.requestOrGuide()
         }
-        findViewById<ImageButton>(R.id.btn_theme).setOnClickListener {
+        findViewByName<ImageButton>("btn_theme")?.setOnClickListener {
             prefs.isDark = !prefs.isDark
             map.applyStyle(prefs.isDark)
             updateThemeIcon()
         }
         updateThemeIcon()
 
-        // Bind Play Panel UI & Attach Google Map Fragment
+        // Bind Play Panel UI
         playPanel.bind()
-        val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as? SupportMapFragment
+
+        // Safely Bind Google Map Fragment
+        val mapResId = getResId("map")
+        val mapFragment = if (mapResId != 0) {
+            supportFragmentManager.findFragmentById(mapResId) as? SupportMapFragment
+        } else null
+
         mapFragment?.let { map.attach(it) }
 
-        // Inisialisasi Pengecekan Izin Pertama Kali
         if (permissionFlow.hasPermission()) {
             map.ensureBlueDot()
             map.focusFresh()
@@ -129,7 +135,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /** Memperbarui status tampilan PlayPanel & Notifikasi indikator. */
     private fun refreshUIState() {
         runOnUiThread {
             playPanel.bind()
@@ -137,7 +142,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /** Satu pintu update notifikasi indikator (kumpulkan target aktif → update). */
     private fun refreshNotif() {
         val activeList = Targets.all.mapNotNull { t ->
             if (prefs.isSpoofActive(t.id)) {
@@ -154,7 +158,6 @@ class MainActivity : AppCompatActivity() {
             refreshUIState()
         }
 
-        // Kembali dari Settings → selesaikan tahap tertunda → rantai evaluasi ulang
         permissionFlow.resumePendingBackground { nextChainStep() }
     }
 
@@ -163,13 +166,6 @@ class MainActivity : AppCompatActivity() {
         if (::map.isInitialized) map.stop()
     }
 
-    /**
-     * Mesin status rantai izin:
-     * 1) Lokasi dasar   — ulang hingga granted
-     * 2) Selalu izinkan — ulang hingga granted
-     * 3) Notifikasi     — ulang hingga granted
-     * 4) Baterai        — dialog sistem SEKALI per sesi
-     */
     private fun nextChainStep() {
         when {
             !permissionFlow.hasPermission() ->
@@ -177,30 +173,29 @@ class MainActivity : AppCompatActivity() {
 
             !permissionFlow.hasBackgroundLocation() ->
                 beginStage("Selalu izinkan") {
-                    permissionFlow.requestBackgroundLocation { 
+                    permissionFlow.requestBackgroundLocation {
                         refreshUIState()
-                        nextChainStep() 
+                        nextChainStep()
                     }
                 }
 
             !notifPerm.isGranted() ->
                 beginStage("Notifikasi") {
-                    notifPerm.requestInChain { 
+                    notifPerm.requestInChain {
                         refreshUIState()
-                        nextChainStep() 
+                        nextChainStep()
                     }
                 }
 
             !permissionFlow.isBatteryUnrestricted() -> {
                 if (!batteryOnceThisSession) {
                     batteryOnceThisSession = true
-                    permissionFlow.requestBatteryExemption { 
+                    permissionFlow.requestBatteryExemption {
                         refreshUIState()
                     }
                 }
             }
             else -> {
-                // Semua izin selesai
                 refreshUIState()
             }
         }
@@ -248,7 +243,19 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateThemeIcon() {
-        findViewById<ImageButton>(R.id.btn_theme)
-            .setImageResource(if (prefs.isDark) R.drawable.ic_sun else R.drawable.ic_moon)
+        val iconRes = if (prefs.isDark) getResId("ic_sun", "drawable") else getResId("ic_moon", "drawable")
+        findViewByName<ImageButton>("btn_theme")?.let { btn ->
+            if (iconRes != 0) btn.setImageResource(iconRes)
+        }
+    }
+
+    // Helper functions untuk menghindari Unresolved Reference pada kompilasi Release
+    private fun getResId(name: String, type: String = "id"): Int {
+        return resources.getIdentifier(name, type, packageName)
+    }
+
+    private fun <T : android.view.View> findViewByName(name: String): T? {
+        val id = getResId(name, "id")
+        return if (id != 0) findViewById(id) else null
     }
 }
