@@ -157,9 +157,12 @@ class SpoofConfig(private val targetId: String) {
     private fun readRemote(): Boolean {
         return try {
             val app = currentApplication() ?: return false
+            val authority = "hidden.the.projectx.config"
+            val methodSpoof = "get_spoof_config"
+            
             val b = app.contentResolver.call(
-                Uri.parse("content://${ConfigProvider.AUTHORITY}"),
-                ConfigProvider.METHOD_SPOOF, targetId, null
+                Uri.parse("content://$authority"),
+                methodSpoof, targetId, null
             ) ?: return false
             applyJitter(
                 b.getString("jit_step")?.toFloatOrNull(),
