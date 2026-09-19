@@ -1,55 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
-    <uses-permission android:name="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" />
+    <!-- Izin Lokasi -->
+    <uses-permission android.permission.ACCESS_FINE_LOCATION />
+    <uses-permission android.permission.ACCESS_COARSE_LOCATION />
+
+    <!-- Izin Foreground Service & Notifikasi -->
     <uses-permission android.permission.FOREGROUND_SERVICE />
-    <!-- Diperlukan untuk Android 14 (API 34) ke atas jika menggunakan Foreground Service -->
     <uses-permission android.permission.FOREGROUND_SERVICE_LOCATION />
-    <!-- Diperlukan untuk Android 13 (API 33) ke atas untuk menampilkan notifikasi -->
-    <uses-permission android.permission.POST_NOTIF_PERMISSION />
-
-
-    
-    <!-- Visibilitas manager → target (push broadcast + auto-launch) -->
-    <queries>
-        <package android:name="com.gojek.partner" />
-        <package android:name="com.grabtaxi.driver2" />
-    </queries>
+    <uses-permission android.permission.POST_NOTIFICATIONS />
 
     <application
+        android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/Theme.PROJECTX"
-        android:supportsRtl="true">
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.AppCompat.DayNight.NoActionBar">
 
+        <!-- Google Maps API Key -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="${MAPS_API_KEY}" />
 
-        <meta-data
-            android:name="xposedmodule"
-            android:value="true" />
-        <meta-data
-            android:name="xposeddescription"
-            android:value="" />  <!-- Deskripsi pada Lsposed Modul -->
-        <meta-data
-            android:name="xposedminversion"
-            android:value="82" />
-        <meta-data
-            android:name="xposedscope"
-            android:resource="@array/xposed_scope" />
-
-        <provider
-            android:name="hidden.the.projectx.core.ConfigProvider"
-            android:authorities="hidden.the.projectx.config"
-            android:exported="true" />
-
+        <!-- Activity Utama -->
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -59,16 +34,6 @@
             </intent-filter>
         </activity>
 
-        <!-- Tambahkan Service ini di dalam tag <application> -->
-        <service
-            android:name="hidden.the.projectx.service.GojekNotifListener"
-            android:label="PROJECT-X Auto-Stop Service"
-            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.service.notification.NotificationListenerService" />
-            </intent-filter>
-        </service>
-        
     </application>
+
 </manifest>
