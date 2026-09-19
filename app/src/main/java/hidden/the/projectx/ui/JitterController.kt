@@ -49,7 +49,8 @@ class JitterController(
     private fun targetLabel(id: String) =
         if (id == Targets.GRAB.id) "GRAB" else "GOJEK"
 
-    private fun show() {
+    // Diubah menjadi public agar dapat dipanggil dari MainActivity
+    fun show() {
         val v = LayoutInflater.from(activity).inflate(R.layout.dialog_jitter, null)
         val segGrab  = v.findViewById<TextView>(R.id.seg_grab)
         val segGojek = v.findViewById<TextView>(R.id.seg_gojek)
