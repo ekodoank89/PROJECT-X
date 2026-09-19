@@ -25,10 +25,7 @@ jobs:
       - name: Grant Execute Permission for Gradlew
         run: chmod +x gradlew
 
-      # Opsional: Decode file Keystore jika Anda menyimpannya sebagai Base64 di Secrets
-      # Jika file 'aya.keystore' sudah ada di dalam repository app/, Anda bisa menghapus step ini.
-      - name: Decode Keystore
-        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
+      - name: Decode Keystore from Secrets
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > app/aya.keystore
 
