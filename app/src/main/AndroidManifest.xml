@@ -9,6 +9,7 @@
     <!-- Izin Foreground Service & Notifikasi -->
     <uses-permission android.permission.FOREGROUND_SERVICE />
     <uses-permission android.permission.FOREGROUND_SERVICE_LOCATION />
+    <!-- Nama permission yang benar adalah POST_NOTIFICATIONS (bukan POST_NOTIF_PERMISSION) -->
     <uses-permission android.permission.POST_NOTIFICATIONS />
 
     <application
