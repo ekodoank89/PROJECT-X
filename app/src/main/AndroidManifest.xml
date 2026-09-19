@@ -2,11 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Izin Lokasi -->
+    <!-- Izin Akses Lokasi -->
     <uses-permission android.permission.ACCESS_FINE_LOCATION />
     <uses-permission android.permission.ACCESS_COARSE_LOCATION />
 
-    <!-- Izin Foreground Service & Notifikasi -->
+    <!-- Izin Layanan Foreground & Notifikasi -->
     <uses-permission android.permission.FOREGROUND_SERVICE />
     <uses-permission android.permission.FOREGROUND_SERVICE_LOCATION />
     <uses-permission android.permission.POST_NOTIFICATIONS />
@@ -19,7 +19,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.DayNight.NoActionBar">
 
-        <!-- Google Maps API Key via Placeholder -->
+        <!-- Google Maps API Key via Manifest Placeholder -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="${MAPS_API_KEY}" />
