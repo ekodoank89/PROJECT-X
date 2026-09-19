@@ -1,6 +1,6 @@
 plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
 }
 
 android {
@@ -42,10 +42,10 @@ dependencies {
     implementation("com.google.android.gms:play-services-maps:19.0.0")
     implementation("com.google.android.gms:play-services-location:21.3.0")
 
-    // Dependensi wajib untuk pesan internal aplikasi
+    // LocalBroadcastManager
     implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
 
-    // Dependensi Xposed API (compileOnly agar tidak ikut terkemas ke APK)
+    // Xposed API
     compileOnly("de.robv.android.xposed:api:82")
 
     testImplementation("junit:junit:4.13.2")
