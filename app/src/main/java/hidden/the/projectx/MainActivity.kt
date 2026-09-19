@@ -19,6 +19,7 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import hidden.the.projectx.core.ConfigPusher
 import hidden.the.projectx.core.FavoritesStore
+import hidden.the.projectx.core.NotificationHelper
 import hidden.the.projectx.core.Prefs
 import hidden.the.projectx.core.Targets
 import hidden.the.projectx.ui.FavoritesController
@@ -38,6 +39,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var map: MapController
     private lateinit var favorites: FavoritesController
     private lateinit var jitter: JitterController
+    private lateinit var notificationHelper: NotificationHelper
 
     private var btnGrab: ImageButton? = null
     private var btnGojek: ImageButton? = null
@@ -51,6 +53,15 @@ class MainActivity : AppCompatActivity() {
             map.ensureBlueDot()
         } else {
             Toast.makeText(this, "Izin lokasi diperlukan untuk menampilkan titik biru", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // Permission Launcher khusus Notifikasi (Android 13+)
+    private val notificationPermissionRequest = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (!isGranted) {
+            Toast.makeText(this, "Izin notifikasi ditolak. Notifikasi status bar tidak dapat ditampilkan.", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -70,6 +81,7 @@ class MainActivity : AppCompatActivity() {
 
         prefs = Prefs(this)
         pusher = ConfigPusher(this)
+        notificationHelper = NotificationHelper(this)
 
         // Binding View Tombol Utama
         btnGrab = findViewById(R.id.btn_grab)
@@ -85,8 +97,8 @@ class MainActivity : AppCompatActivity() {
         // 2. Setup Click Listener Tombol Navigasi Peta
         setupMapControlButtons()
 
-        // 3. Minta Izin & Aktifkan Titik Biru
-        checkAndEnableLocation()
+        // 3. Minta Izin Lokasi & Notifikasi
+        checkAndEnablePermissions()
 
         // 4. Inisialisasi FavoritesController
         favorites = FavoritesController(
@@ -185,7 +197,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun checkAndEnableLocation() {
+    private fun checkAndEnablePermissions() {
+        // 1. Izin Lokasi
         val hasFine = ContextCompat.checkSelfPermission(
             this, Manifest.permission.ACCESS_FINE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
@@ -203,6 +216,16 @@ class MainActivity : AppCompatActivity() {
                     Manifest.permission.ACCESS_COARSE_LOCATION
                 )
             )
+        }
+
+        // 2. Izin Notifikasi (Android 13 / Tiramisu ke atas)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(
+                    this, Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                notificationPermissionRequest.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
         }
     }
 
@@ -226,8 +249,10 @@ class MainActivity : AppCompatActivity() {
             // Push konfigurasi terbaru ke broadcast receiver
             pusher.pushAll()
 
-            // Update Background & Icon Tombol GRAB
             val isGrabActive = prefs.isSpoofActive(Targets.GRAB.id)
+            val isGojekActive = prefs.isSpoofActive(Targets.GOJEK.id)
+
+            // Update Background & Icon Tombol GRAB
             btnGrab?.setBackgroundResource(
                 if (isGrabActive) R.drawable.bg_play_red_touch else R.drawable.bg_play_green_touch
             )
@@ -236,13 +261,31 @@ class MainActivity : AppCompatActivity() {
             )
 
             // Update Background & Icon Tombol GOJEK
-            val isGojekActive = prefs.isSpoofActive(Targets.GOJEK.id)
             btnGojek?.setBackgroundResource(
                 if (isGojekActive) R.drawable.bg_play_red_touch else R.drawable.bg_play_green_touch
             )
             btnGojek?.setImageResource(
                 if (isGojekActive) R.drawable.ic_stop else R.drawable.ic_play
             )
+
+            // Update Status Notifikasi di Status Bar
+            updateStatusBarNotification(isGrabActive, isGojekActive)
+        }
+    }
+
+    private fun updateStatusBarNotification(isGrabActive: Boolean, isGojekActive: Boolean) {
+        val activeTargets = mutableListOf<String>()
+        if (isGrabActive) activeTargets.add("GRAB")
+        if (isGojekActive) activeTargets.add("GOJEK")
+
+        if (activeTargets.isNotEmpty()) {
+            val targetsText = activeTargets.joinToString(" & ")
+            notificationHelper.showOrUpdate(
+                title = "Fake GPS Active ($targetsText)",
+                message = "Lokasi spoofing sedang aktif di background."
+            )
+        } else {
+            notificationHelper.cancel()
         }
     }
 
@@ -261,28 +304,22 @@ class MainActivity : AppCompatActivity() {
     private fun playFromFavorite(catId: String, lat: Double, lng: Double, name: String) {
         val combinedText = "${catId.lowercase()} ${name.lowercase()}"
 
-        // Deteksi target secara fleksibel dari nama/ID kategori DAN nama item favorit
         val targetIds = when {
             combinedText.contains("gojek") -> listOf(Targets.GOJEK.id)
             combinedText.contains("grab") -> listOf(Targets.GRAB.id)
-            else -> listOf(Targets.GOJEK.id, Targets.GRAB.id) // Fallback aktifkan keduanya jika tidak terdeteksi
+            else -> listOf(Targets.GOJEK.id, Targets.GRAB.id)
         }
 
-        // 1. Simpan koordinat dan aktifkan spoofing
         for (targetId in targetIds) {
             prefs.setSpoofPoint(targetId, lat, lng)
             prefs.setSpoofActive(targetId, true)
         }
 
-        // 2. Wajib push konfigurasi terbaru ke receiver
         pusher.pushAll()
-
-        // 3. Perbarui tampilan UI tombol
         updatePlayStopUI()
 
         Toast.makeText(this, "Meluncur ke $name", Toast.LENGTH_SHORT).show()
 
-        // 4. Buka aplikasi target
         for (targetId in targetIds) {
             launchTargetApp(targetId)
         }
@@ -291,7 +328,6 @@ class MainActivity : AppCompatActivity() {
     private fun launchTargetApp(targetId: String) {
         val targetLower = targetId.lowercase()
 
-        // Package list lengkap (Driver + Passenger sebagai cadangan)
         val packagesToTry = when {
             targetLower.contains("gojek") -> listOf("com.gojek.partner", "com.gojek.app")
             targetLower.contains("grab") -> listOf("com.grabtaxi.driver2", "com.grabtaxi.passenger")
@@ -300,7 +336,6 @@ class MainActivity : AppCompatActivity() {
 
         for (pkg in packagesToTry) {
             try {
-                // Gunakan getLaunchIntentForPackage
                 val launchIntent = packageManager.getLaunchIntentForPackage(pkg)
                 if (launchIntent != null) {
                     launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)
@@ -308,7 +343,6 @@ class MainActivity : AppCompatActivity() {
                     Log.d(TAG, "Berhasil membuka aplikasi: $pkg")
                     return
                 } else {
-                    // Fallback jika launchIntent null tetapi package terpasang
                     val fallbackIntent = Intent(Intent.ACTION_MAIN).apply {
                         addCategory(Intent.CATEGORY_LAUNCHER)
                         setPackage(pkg)
