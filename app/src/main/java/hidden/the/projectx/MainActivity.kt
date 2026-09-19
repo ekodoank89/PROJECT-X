@@ -1,59 +1,53 @@
-import android.Manifest
-import android.content.pm.PackageManager
-import android.os.Build
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
+package hidden.the.projectx
 
-// ... di dalam kelas MainActivity ...
+import android.os.Bundle
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import hidden.the.projectx.core.Prefs
+import hidden.the.projectx.ui.PermissionFlow
 
-private const val LOCATION_PERMISSION_REQUEST_CODE = 1001
+class MainActivity : AppCompatActivity() {
 
-private fun checkLocationPermission(): Boolean {
-    // 1. Cek izin lokasi dasar (Fine & Coarse)
-    val hasFineLocation = ContextCompat.checkSelfPermission(
-        this,
-        Manifest.permission.ACCESS_FINE_LOCATION
-    ) == PackageManager.PERMISSION_GRANTED
+    private lateinit var prefs: Prefs
+    private lateinit var permissionFlow: PermissionFlow
 
-    val hasCoarseLocation = ContextCompat.checkSelfPermission(
-        this,
-        Manifest.permission.ACCESS_COARSE_LOCATION
-    ) == PackageManager.PERMISSION_GRANTED
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
 
-    if (!hasFineLocation && !hasCoarseLocation) {
-        // Minta izin lokasi utama jika belum diberikan
-        ActivityCompat.requestPermissions(
-            this,
-            arrayOf(
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ),
-            LOCATION_PERMISSION_REQUEST_CODE
-        )
-        return false
+        prefs = Prefs(this)
+
+        // Inisialisasi rantai izin
+        permissionFlow = PermissionFlow(
+            activity = this,
+            prefs = prefs,
+            onGranted = {
+                // Dipanggil saat izin lokasi aktif
+                setupMainUI()
+            }
+        ).apply {
+            // Dipanggil saat pemeriksaan izin selesai (apapun hasilnya)
+            onSettled = {
+                if (!hasPermission()) {
+                    Toast.makeText(this@MainActivity, "Izin lokasi diperlukan", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
+        // Minta atau periksa izin saat aplikasi dibuka
+        permissionFlow.requestOrGuide()
     }
 
-    // 2. Jika lokasi utama sudah aktif, lanjutkan alur aplikasi (Load Map / Services)
-    onLocationPermissionGranted()
-    return true
-}
-
-private fun onLocationPermissionGranted() {
-    // Panggil logika lanjutan di sini (misal: initMap(), startServiceCheck(), dsb.)
-    // Ini akan mengubah status "Memeriksa..." menjadi aktif/siap
-}
-
-override fun onRequestPermissionsResult(
-    requestCode: Int,
-    permissions: Array<out String>,
-    grantResults: IntArray
-) {
-    super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-    if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
-        if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            onLocationPermissionGranted()
-        } else {
-            Toast.makeText(this, "Izin lokasi diperlukan untuk menjalankan aplikasi", Toast.LENGTH_SHORT).show()
+    override fun onResume() {
+        super.onResume()
+        // Menyelesaikan pemeriksaan background location jika baru kembali dari Settings
+        permissionFlow.resumePendingBackground {
+            // Alur dilanjutkan setelah kembali dari menu Pengaturan
         }
+    }
+
+    private fun setupMainUI() {
+        // Pindah/ganti status "Status: Memeriksa..." ke Peta atau UI Utama di sini
+        // Contoh: initMapController(), loadPanelUI(), dll.
     }
 }
