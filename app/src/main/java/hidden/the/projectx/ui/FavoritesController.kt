@@ -61,7 +61,8 @@ class FavoritesController(
         return d
     }
 
-    private fun show() {
+    // Diubah menjadi public agar dapat dipanggil dari MainActivity
+    fun show() {
         val v = LayoutInflater.from(activity).inflate(R.layout.dialog_favorites, null)
         val catGrab   = v.findViewById<TextView>(R.id.cat_grab)
         val catGojek  = v.findViewById<TextView>(R.id.cat_gojek)
