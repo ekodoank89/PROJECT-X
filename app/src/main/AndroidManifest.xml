@@ -9,7 +9,6 @@
     <!-- Izin Foreground Service & Notifikasi -->
     <uses-permission android.permission.FOREGROUND_SERVICE />
     <uses-permission android.permission.FOREGROUND_SERVICE_LOCATION />
-    <!-- Nama permission yang benar adalah POST_NOTIFICATIONS (bukan POST_NOTIF_PERMISSION) -->
     <uses-permission android.permission.POST_NOTIFICATIONS />
 
     <application
@@ -20,7 +19,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.DayNight.NoActionBar">
 
-        <!-- Google Maps API Key -->
+        <!-- Google Maps API Key via Placeholder -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="${MAPS_API_KEY}" />
