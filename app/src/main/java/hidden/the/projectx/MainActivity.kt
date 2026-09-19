@@ -1,6 +1,8 @@
 package hidden.the.projectx
 
 import android.os.Bundle
+import android.widget.Button
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import hidden.the.projectx.core.Prefs
@@ -11,43 +13,71 @@ class MainActivity : AppCompatActivity() {
     private lateinit var prefs: Prefs
     private lateinit var permissionFlow: PermissionFlow
 
+    private lateinit var tvStatus: TextView
+    private lateinit var btnStartService: Button
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         prefs = Prefs(this)
 
-        // Inisialisasi rantai izin
+        // Inisialisasi Komponen UI dari Layout
+        tvStatus = findViewById(R.id.tvStatus) // Sesuaikan ID jika berbeda di layout Anda
+        btnStartService = findViewById(R.id.btnStartService) // Sesuaikan ID jika berbeda
+
+        // Inisialisasi PermissionFlow
         permissionFlow = PermissionFlow(
             activity = this,
             prefs = prefs,
             onGranted = {
-                // Dipanggil saat izin lokasi aktif
-                setupMainUI()
+                // Dipanggil saat "Izin lokasi diberikan"
+                updateUIOnPermissionGranted()
             }
         ).apply {
-            // Dipanggil saat pemeriksaan izin selesai (apapun hasilnya)
             onSettled = {
                 if (!hasPermission()) {
-                    Toast.makeText(this@MainActivity, "Izin lokasi diperlukan", Toast.LENGTH_SHORT).show()
+                    tvStatus.text = "Status: Izin Lokasi Diperlukan"
                 }
             }
         }
 
-        // Minta atau periksa izin saat aplikasi dibuka
+        // Setup Listener Tombol Mulai Layanan
+        btnStartService.setOnClickListener {
+            if (permissionFlow.hasPermission()) {
+                startMainService()
+            } else {
+                permissionFlow.requestOrGuide()
+            }
+        }
+
+        // Jalankan pengecekan izin saat pertama kali dibuka
         permissionFlow.requestOrGuide()
     }
 
     override fun onResume() {
         super.onResume()
-        // Menyelesaikan pemeriksaan background location jika baru kembali dari Settings
+        // Tangkap kembali jika user mengubah izin via Settings
         permissionFlow.resumePendingBackground {
-            // Alur dilanjutkan setelah kembali dari menu Pengaturan
+            if (permissionFlow.hasPermission()) {
+                updateUIOnPermissionGranted()
+            }
         }
     }
 
-    private fun setupMainUI() {
-        // Pindah/ganti status "Status: Memeriksa..." ke Peta atau UI Utama di sini
-        // Contoh: initMapController(), loadPanelUI(), dll.
+    /**
+     * Memperbarui UI dari "Memeriksa..." menjadi Siap setelah izin diberikan
+     */
+    private fun updateUIOnPermissionGranted() {
+        runOnUiThread {
+            tvStatus.text = "Status: Siap / Layanan Nonaktif"
+            // Atau jika layanan sudah berjalan: tvStatus.text = "Status: Layanan Aktif"
+        }
+    }
+
+    private fun startMainService() {
+        // Logika untuk menjalankan layanan/spoofing Anda
+        tvStatus.text = "Status: Layanan Berjalan"
+        Toast.makeText(this, "Layanan berhasil dimulaikan", Toast.LENGTH_SHORT).show()
     }
 }
