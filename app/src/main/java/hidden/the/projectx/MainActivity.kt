@@ -72,12 +72,17 @@ class MainActivity : AppCompatActivity() {
             FavoritesStore(this),
             centerProvider = { map.currentCenter() },
             onPlay = { catId, lat, lng, name ->
+                // 1. Pindahkan pin / posisi peta ke koordinat favorit yang dipilih
+                map.moveTo(LatLng(lat, lng)) // Menggeser peta & pin ke koordinat favorit
+
+                // 2. Jalankan fungsi spoofing bawaan
                 playFromFavorite(catId, lat, lng, name)
             },
             onPick = { catId, lat, lng, name ->
                 playFromFavorite(catId, lat, lng, name)
             }
         )
+
 
 
 
