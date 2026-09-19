@@ -14,14 +14,13 @@ android {
         versionCode = 1
         versionName = "1.0.0"
 
-        // Mengambil variabel lingkungan MAPS_API_KEY dengan fallback value
-        val mapsApiKey = System.getenv("MAPS_API_KEY") ?: "DEFAULT_MAPS_KEY_FALLBACK"
+        // Ambil variabel environment atau berikan string default agar Manifest tidak crash
+        val mapsApiKey = System.getenv("MAPS_API_KEY") ?: "DEFAULT_KEY_FALLBACK"
         manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
     }
 
     signingConfigs {
         create("release") {
-            // File aya.keystore dihasilkan dari pemrosesan Base64 pada GitHub Actions
             storeFile = file("aya.keystore")
             storePassword = System.getenv("KEYSTORE_PASSWORD") ?: ""
             keyAlias = System.getenv("KEY_ALIAS") ?: ""
@@ -45,8 +44,11 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
+    // Menggantikan kotlinOptions yang deprecated untuk kompatibilitas Gradle 9+
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+        }
     }
 }
 
