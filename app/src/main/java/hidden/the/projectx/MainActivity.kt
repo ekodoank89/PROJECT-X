@@ -33,6 +33,7 @@ import hidden.the.projectx.ui.NotifPermissionFlow
 import hidden.the.projectx.ui.PermissionFlow
 import hidden.the.projectx.ui.PlayPanelController
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.LatLng
 import hidden.the.projectx.service.GojekNotifListener // PERBAIKAN 1: Nama class disesuaikan
 
 class MainActivity : AppCompatActivity() {
@@ -67,24 +68,17 @@ class MainActivity : AppCompatActivity() {
         pusher = ConfigPusher(this)
         notifs = NotifController(this)
         notifPerm = NotifPermissionFlow(this, notifPermLauncher)
-        favorites = FavoritesController(
+                favorites = FavoritesController(
             this,
             FavoritesStore(this),
             centerProvider = { map.currentCenter() },
             onPlay = { catId, lat, lng, name ->
-                // 1. Pindahkan pin / posisi peta ke koordinat favorit yang dipilih
-                map.moveTo(LatLng(lat, lng)) // Menggeser peta & pin ke koordinat favorit
-
-                // 2. Jalankan fungsi spoofing bawaan
                 playFromFavorite(catId, lat, lng, name)
             },
             onPick = { catId, lat, lng, name ->
                 playFromFavorite(catId, lat, lng, name)
             }
         )
-
-
-
 
 
         permissionFlow = PermissionFlow(this, prefs) {
