@@ -8,6 +8,7 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.view.View
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -72,7 +73,7 @@ class MainActivity : AppCompatActivity() {
             map.attach(it)
         }
 
-        // 2. Setup Click Listener Tombol Peta & Action Bar
+        // 2. Setup Click Listener Tombol Navigasi Peta
         setupMapControlButtons()
 
         // 3. Minta Izin & Aktifkan Titik Biru
@@ -96,16 +97,13 @@ class MainActivity : AppCompatActivity() {
         // 5. Inisialisasi JitterController
         jitter = JitterController(this, prefs, pusher)
 
-        // 6. Setup Click Listener Bottom Panel (Favorit, Jitter, Play/Stop & Search)
+        // 6. Setup Click Listener Bottom Panel (GRAB, GOJEK, FAVORIT, JITTER)
         setupBottomPanelButtons()
 
         registerServiceReceiver()
         updatePlayStopUI()
     }
 
-    /**
-     * Listener untuk tombol navigasi peta (Zoom, Focus, Theme)
-     */
     private fun setupMapControlButtons() {
         // Tombol Fokus Lokasi Saya (@id/btn_my_location)
         findViewById<ImageButton>(R.id.btn_my_location)?.setOnClickListener {
@@ -120,33 +118,25 @@ class MainActivity : AppCompatActivity() {
         }
 
         // Tombol Zoom In (@id/btn_zoom_in)
-        findViewById<android.view.View>(R.id.btn_zoom_in)?.setOnClickListener {
+        findViewById<View>(R.id.btn_zoom_in)?.setOnClickListener {
             map.zoomMax()
         }
 
         // Tombol Zoom Out (@id/btn_zoom_out)
-        findViewById<android.view.View>(R.id.btn_zoom_out)?.setOnClickListener {
+        findViewById<View>(R.id.btn_zoom_out)?.setOnClickListener {
             map.zoomOut()
         }
     }
 
-    /**
-     * Listener untuk tombol bottom bar (Play GRAB/GOJEK, Search, Fav, Jitter)
-     */
     private fun setupBottomPanelButtons() {
-        // Tombol Play / Stop GRAB (@id/btn_play_grab)
-        findViewById<ImageButton>(R.id.btn_play_grab)?.setOnClickListener {
-            togglePlayStop(Targets.GRAB.id)
+        // Tombol Play / Stop GRAB (@id/btn_grab)
+        findViewById<ImageButton>(R.id.btn_grab)?.setOnClickListener {
+            toggleTarget(Targets.GRAB.id)
         }
 
-        // Tombol Play / Stop GOJEK (@id/btn_play_gojek)
-        findViewById<ImageButton>(R.id.btn_play_gojek)?.setOnClickListener {
-            togglePlayStop(Targets.GOJEK.id)
-        }
-
-        // Tombol Cari / Search (@id/btn_search)
-        findViewById<ImageButton>(R.id.btn_search)?.setOnClickListener {
-            Toast.makeText(this, "Fitur Cari Lokasi", Toast.LENGTH_SHORT).show()
+        // Tombol Play / Stop GOJEK (@id/btn_gojek)
+        findViewById<ImageButton>(R.id.btn_gojek)?.setOnClickListener {
+            toggleTarget(Targets.GOJEK.id)
         }
 
         // Tombol Favorit (@id/btn_fav)
@@ -160,29 +150,19 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Menangani fungsi Start/Stop Fake Location per target
-     */
-    private fun togglePlayStop(targetId: String) {
-        val currentCenter = map.currentCenter()
-        if (currentCenter == null) {
-            Toast.makeText(this, "Peta belum siap atau lokasi tidak ditemukan", Toast.LENGTH_SHORT).show()
+    private fun toggleTarget(targetId: String) {
+        val center = map.currentCenter()
+        if (center == null) {
+            Toast.makeText(this, "Peta belum siap", Toast.LENGTH_SHORT).show()
             return
         }
 
-        // Toggle state aktif/non-aktif di Prefs & Push ke Service
-        val isCurrentlyActive = prefs.isTargetActive(targetId)
-        prefs.setTargetActive(targetId, !isCurrentlyActive)
-
-        if (!isCurrentlyActive) {
-            prefs.setTargetLat(targetId, currentCenter.latitude)
-            prefs.setTargetLng(targetId, currentCenter.longitude)
-            Toast.makeText(this, "Fake Location ${targetId.uppercase()} Aktif", Toast.LENGTH_SHORT).show()
-        } else {
-            Toast.makeText(this, "Fake Location ${targetId.uppercase()} Matikan", Toast.LENGTH_SHORT).show()
-        }
+        // Simpan koordinat dari titik tengah peta & push konfigurasi
+        prefs.setLat(targetId, center.latitude)
+        prefs.setLng(targetId, center.longitude)
 
         updatePlayStopUI()
+        Toast.makeText(this, "Lokasi ${targetId.uppercase()} diperbarui", Toast.LENGTH_SHORT).show()
     }
 
     private fun checkAndEnableLocation() {
@@ -240,10 +220,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun playFromFavorite(catId: String, lat: Double, lng: Double, name: String) {
-        prefs.setTargetLat(catId, lat)
-        prefs.setTargetLng(catId, lng)
-        prefs.setTargetActive(catId, true)
+        prefs.setLat(catId, lat)
+        prefs.setLng(catId, lng)
         updatePlayStopUI()
-        Toast.makeText(this, "Meluncur ke $name (${catId.uppercase()})", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "Meluncur ke $name", Toast.LENGTH_SHORT).show()
     }
 }
