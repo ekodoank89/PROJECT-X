@@ -256,16 +256,24 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun playFromFavorite(targetId: String, lat: Double, lng: Double, name: String) {
-        // Simpan titik lokasi favorit & aktifkan spoof
-        prefs.setSpoofPoint(targetId, lat, lng)
-        prefs.setSpoofActive(targetId, true)
+    private fun playFromFavorite(catId: String, lat: Double, lng: Double, name: String) {
+        val catLower = catId.lowercase()
+
+        // Deteksi target berdasarkan nama/ID kategori
+        val targetsToPlay = when {
+            catLower.contains("gojek") -> listOf("gojek")
+            catLower.contains("grab") -> listOf("grab")
+            else -> listOf("gojek", "grab") // Fallback jika nama kategori bersifat umum
+        }
+
+        for (target in targetsToPlay) {
+            prefs.setSpoofPoint(target, lat, lng)
+            prefs.setSpoofActive(target, true)
+            launchTargetApp(target)
+        }
 
         updatePlayStopUI()
         Toast.makeText(this, "Meluncur ke $name", Toast.LENGTH_SHORT).show()
-
-        // Otomatis membuka aplikasi target (Grab / Gojek)
-        launchTargetApp(targetId)
     }
 
     private fun launchTargetApp(targetId: String) {
@@ -284,7 +292,7 @@ class MainActivity : AppCompatActivity() {
                     return
                 }
             } catch (_: Exception) {
-                // Lanjut ke package berikutnya
+                // Lanjut coba package berikutnya
             }
         }
 
